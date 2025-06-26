@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChefHat, Camera, Sparkles, Upload } from "lucide-react";
+import { ChefHat, Camera, Sparkles, Upload, Hamburger } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/ImageUpload";
 import ImageDisplay from "@/components/ImageDisplay";
@@ -97,9 +97,6 @@ export default function Home() {
                   AI-Powered
                 </span>
               </div>
-              <button className="bg-black text-yellow-400 hover:bg-gray-800 px-4 py-2 rounded-full text-sm font-semibold transition-colors">
-                Get Started
-              </button>
             </div>
           </div>
         </div>
@@ -125,7 +122,7 @@ export default function Home() {
           <div className="bg-white rounded-3xl shadow-lg border border-black/5 p-8 max-w-2xl mx-auto">
             <div className="text-center mb-8">
               <div className="p-4 bg-yellow-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Camera className="h-8 w-8 text-black" />
+                <Hamburger className="h-8 w-8 text-black" />
               </div>
               <h2 className="text-2xl font-bold text-black mb-2">
                 Upload Your Food Photo

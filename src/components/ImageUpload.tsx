@@ -125,18 +125,16 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
       >
         <div className="p-6 bg-yellow-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
           <Upload className="h-12 w-12 text-black" />
         </div>
-        <h3 className="text-2xl font-bold text-black mb-4">
-          Upload Your Food Photo
-        </h3>
+
         <p className="text-black/70 mb-6 leading-relaxed text-lg">
           Drop your food photo here, or{" "}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
             className="text-black underline hover:text-gray-700 font-semibold"
           >
             browse files
