@@ -4,7 +4,7 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 async def analyze_food_image(base64_image: str):
