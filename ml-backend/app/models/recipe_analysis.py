@@ -20,7 +20,8 @@ async def analyze_food_image(base64_image: str):
                     },
                     {
                         "type": "input_image",
-                        "image_url": f"data:image/png;base64,{base64_image}",
+                        "image_url": f"{base64_image}",
+                        # "image_url": f"data:image/png;base64,{base64_image}",
                     },
                 ],
             }
