@@ -1,0 +1,284 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  bio       String?
+  avatar    String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Authentication
+  password String?
+  accounts Account[]
+  sessions Session[]
+
+  // Recipe-related
+  recipes          Recipe[]
+  savedRecipes     SavedRecipe[]
+  recipeLikes      RecipeLike[]
+  recipeReviews    RecipeReview[]
+  madeRecipes      MadeRecipe[]
+  mealPlans        MealPlan[]
+
+  // Social features
+  following        Follow[] @relation("UserFollowing")
+  followers        Follow[] @relation("UserFollowers")
+  
+  // Shopping lists
+  shoppingLists    ShoppingList[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Recipe {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  instructions Json     // Array of step objects
+  prepTime     Int?     // in minutes
+  cookTime     Int?     // in minutes
+  servings     Int?
+  difficulty   String?  // "Easy", "Medium", "Hard"
+  cuisine      String?
+  category     String?  // "Breakfast", "Lunch", "Dinner", "Dessert", etc.
+  
+  // Images
+  images       String[] // Array of image URLs
+  mainImage    String?  // Featured image URL
+  
+  // AI-generated content
+  aiTags       String[] // AI-generated tags
+  userTags     String[] // User-added tags
+  allTags      String[] // Combined tags for searching
+  pairings     Json?    // AI-generated pairing suggestions
+  nutrition    Json?    // Nutritional information
+  
+  // Metrics
+  likesCount   Int      @default(0)
+  savesCount   Int      @default(0)
+  madeCount    Int      @default(0)
+  viewsCount   Int      @default(0)
+  avgRating    Float    @default(0)
+  reviewsCount Int      @default(0)
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  publishedAt  DateTime?
+  isPublished  Boolean  @default(false)
+  
+  // Relations
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  ingredients  RecipeIngredient[]
+  likes        RecipeLike[]
+  saves        SavedRecipe[]
+  reviews      RecipeReview[]
+  madeRecipes  MadeRecipe[]
+  mealPlanItems MealPlanItem[]
+
+  @@map("recipes")
+}
+
+model Ingredient {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  category        String?  // "Protein", "Vegetable", "Spice", etc.
+  commonUnit      String?  // "cup", "tbsp", "oz", etc.
+  nutritionPer100g Json?   // Nutritional information per 100g
+  aliases         String[] // Alternative names
+  createdAt       DateTime @default(now())
+  
+  recipeIngredients RecipeIngredient[]
+
+  @@map("ingredients")
+}
+
+model RecipeIngredient {
+  id           String @id @default(cuid())
+  recipeId     String
+  ingredientId String
+  amount       Float?
+  unit         String?
+  preparation  String? // "diced", "minced", "chopped", etc.
+  optional     Boolean @default(false)
+  
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([recipeId, ingredientId])
+  @@map("recipe_ingredients")
+}
+
+model RecipeLike {
+  id       String @id @default(cuid())
+  recipeId String
+  userId   String
+  likedAt  DateTime @default(now())
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, userId])
+  @@map("recipe_likes")
+}
+
+model SavedRecipe {
+  id       String @id @default(cuid())
+  recipeId String
+  userId   String
+  savedAt  DateTime @default(now())
+  notes    String?
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, userId])
+  @@map("saved_recipes")
+}
+
+model RecipeReview {
+  id       String @id @default(cuid())
+  recipeId String
+  userId   String
+  rating   Int    // 1-5 stars
+  comment  String?
+  images   String[] // Optional images with the review
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, userId])
+  @@map("recipe_reviews")
+}
+
+model MadeRecipe {
+  id        String @id @default(cuid())
+  recipeId  String
+  userId    String
+  madeAt    DateTime @default(now())
+  rating    Int?     // Optional rating when marking as made
+  notes     String?  // User's notes about their cooking experience
+  images    String[] // Photos of their finished dish
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("made_recipes")
+}
+
+model Follow {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model MealPlan {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items MealPlanItem[]
+
+  @@map("meal_plans")
+}
+
+model MealPlanItem {
+  id         String @id @default(cuid())
+  mealPlanId String
+  recipeId   String
+  date       DateTime
+  mealType   String // "breakfast", "lunch", "dinner", "snack"
+  servings   Int    @default(1)
+  
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@map("meal_plan_items")
+}
+
+model ShoppingList {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  items     Json     // Array of shopping list items
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("shopping_lists")
+}
+
+model TrendingRecipe {
+  id          String   @id @default(cuid())
+  recipeId    String   @unique
+  score       Float    // Trending score based on algorithm
+  trendingAt  DateTime @default(now())
+  
+  @@map("trending_recipes")
+}
