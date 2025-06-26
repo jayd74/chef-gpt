@@ -4,7 +4,7 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 async def analyze_food_image(base64_image: str):
@@ -16,12 +16,11 @@ async def analyze_food_image(base64_image: str):
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "Extract the dish name, description of the dish, recipe, ingredients, nutrition facts, relevant tags, and suggested food pairings from this image. Keep the description short and sweet.",
+                        "text": "Extract the dish name, description of the dish, recipe, ingredients, nutrition facts, relevant tags, and suggested food pairings from this image. Keep the description short and sweet. Return the recipe in steps as html list format.",
                     },
                     {
                         "type": "input_image",
                         "image_url": f"{base64_image}",
-                        # "image_url": f"data:image/png;base64,{base64_image}",
                     },
                 ],
             }
