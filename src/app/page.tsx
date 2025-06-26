@@ -6,12 +6,30 @@ import ImageUpload from "@/components/ImageUpload";
 import ImageDisplay from "@/components/ImageDisplay";
 import { Button } from "@/components/ui/button";
 
+interface NutritionFacts {
+  serving_size: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+}
+
+interface Analysis {
+  dish_name?: string;
+  description?: string;
+  tags?: string[];
+  recipe?: string;
+  ingredients?: string[];
+  nutrition_facts?: NutritionFacts;
+  food_pairings?: string[];
+}
+
 interface FoodImage {
   id: string;
   base64: string;
   filename: string;
   uploadedAt: Date;
-  analysis?: any;
+  analysis?: Analysis;
 }
 
 export default function Home() {

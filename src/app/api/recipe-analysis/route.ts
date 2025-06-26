@@ -31,12 +31,19 @@ export async function POST(request: NextRequest) {
       console.error("ML backend error:", response.status, response.statusText);
       // For now, return a mock analysis if ML backend is not available
       analysis = {
-        food_name: "Unknown Food",
-        confidence: 0.5,
-        calories: 250,
-        cooking_time: 30,
-        ingredients: ["ingredient 1", "ingredient 2"],
+        dish_name: "Unknown Dish",
+        description: "A delicious dish that was detected in your image.",
+        tags: ["unknown", "detected"],
         recipe: "This is a sample recipe based on the uploaded image.",
+        ingredients: ["ingredient 1", "ingredient 2", "ingredient 3"],
+        nutrition_facts: {
+          serving_size: "1 serving",
+          calories: 250,
+          protein: 15,
+          carbohydrates: 30,
+          fat: 10,
+        },
+        food_pairings: ["water", "side dish"],
       };
     }
 

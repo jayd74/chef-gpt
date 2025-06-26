@@ -1,15 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Clock, ChefHat, Trash2 } from "lucide-react";
+import { Sparkles, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+interface NutritionFacts {
+  serving_size: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+}
+
+interface Analysis {
+  dish_name?: string;
+  description?: string;
+  tags?: string[];
+  recipe?: string;
+  ingredients?: string[];
+  nutrition_facts?: NutritionFacts;
+  food_pairings?: string[];
+}
 
 interface FoodImage {
   id: string;
   base64: string;
   filename: string;
   uploadedAt: Date;
-  analysis?: any;
+  analysis?: Analysis;
 }
 
 interface ImageDisplayProps {
@@ -95,44 +113,125 @@ export default function ImageDisplay({
               </div>
 
               <div className="bg-white rounded p-3 border">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Detected Food:</span>
-                    <p className="font-medium text-gray-900">
-                      {image.analysis.dish_name || "Unknown"}
+                {/* Dish Name and Description */}
+                <div className="mb-3">
+                  <h4 className="font-semibold text-gray-900 text-lg">
+                    {image.analysis.dish_name || "Unknown Dish"}
+                  </h4>
+                  {image.analysis.description && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      {image.analysis.description}
                     </p>
-                  </div>
-                  {image.analysis.calories && (
-                    <div>
-                      <span className="text-gray-500">Calories:</span>
-                      <p className="font-medium text-gray-900">
-                        {image.analysis.calories} kcal
-                      </p>
-                    </div>
-                  )}
-                  {image.analysis.cooking_time && (
-                    <div>
-                      <span className="text-gray-500">Cooking Time:</span>
-                      <p className="font-medium text-gray-900">
-                        {image.analysis.cooking_time} min
-                      </p>
-                    </div>
                   )}
                 </div>
 
-                {image.analysis.ingredients && (
-                  <div className="mt-3">
-                    <span className="text-gray-500 text-sm">Ingredients:</span>
-                    <p className="text-sm text-gray-900 mt-1">
-                      {image.analysis.ingredients.join(", ")}
-                    </p>
+                {/* Tags */}
+                {image.analysis.tags && image.analysis.tags.length > 0 && (
+                  <div className="mb-3">
+                    <span className="text-gray-500 text-sm">Tags:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {image.analysis.tags.map((tag: string, index: number) => (
+                        <span
+                          key={index}
+                          className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
 
+                {/* Nutrition Facts */}
+                {image.analysis.nutrition_facts && (
+                  <div className="mb-3">
+                    <span className="text-gray-500 text-sm">
+                      Nutrition Facts:
+                    </span>
+                    <div className="grid grid-cols-2 gap-2 mt-1 text-sm">
+                      <div>
+                        <span className="text-gray-500">Serving:</span>
+                        <p className="font-medium text-gray-900">
+                          {image.analysis.nutrition_facts.serving_size}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Calories:</span>
+                        <p className="font-medium text-gray-900">
+                          {image.analysis.nutrition_facts.calories} kcal
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Protein:</span>
+                        <p className="font-medium text-gray-900">
+                          {image.analysis.nutrition_facts.protein}g
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Carbs:</span>
+                        <p className="font-medium text-gray-900">
+                          {image.analysis.nutrition_facts.carbohydrates}g
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Fat:</span>
+                        <p className="font-medium text-gray-900">
+                          {image.analysis.nutrition_facts.fat}g
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Ingredients */}
+                {image.analysis.ingredients &&
+                  image.analysis.ingredients.length > 0 && (
+                    <div className="mb-3">
+                      <span className="text-gray-500 text-sm">
+                        Ingredients:
+                      </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {image.analysis.ingredients.map(
+                          (ingredient: string, index: number) => (
+                            <span
+                              key={index}
+                              className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                            >
+                              {ingredient}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Food Pairings */}
+                {image.analysis.food_pairings &&
+                  image.analysis.food_pairings.length > 0 && (
+                    <div className="mb-3">
+                      <span className="text-gray-500 text-sm">
+                        Goes well with:
+                      </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {image.analysis.food_pairings.map(
+                          (pairing: string, index: number) => (
+                            <span
+                              key={index}
+                              className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded"
+                            >
+                              {pairing}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Recipe */}
                 {image.analysis.recipe && (
                   <div className="mt-3">
                     <span className="text-gray-500 text-sm">Recipe:</span>
-                    <p className="text-sm text-gray-900 mt-1">
+                    <p className="text-sm text-gray-900 mt-1 leading-relaxed">
                       {image.analysis.recipe}
                     </p>
                   </div>
