@@ -1,36 +1,38 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import uvicorn
 import os
-from dotenv import load_dotenv
+import sys
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 import asyncio
 import logging
 
-from .models.food_recognition import FoodRecognitionModel
-from .models.nutrition_analyzer import NutritionAnalyzer
-from .models.recipe_recommender import RecipeRecommender
-from .models.tag_generator import TagGenerator
-from .schemas import (
-    RecipeAnalysisRequest,
-    RecipeAnalysisResponse,
-    IngredientRecognitionResponse,
-    NutritionAnalysisResponse,
-    RecipeRecommendationRequest,
-    RecipeRecommendationResponse,
-    MealPlanRequest,
-    MealPlanResponse
-)
-from .utils.image_processing import process_uploaded_image
-from .database import get_db
-
-# Load environment variables
-load_dotenv()
+# Add the parent directory to Python path to allow importing app modules
+sys.path.append(str(Path(__file__).parent.parent))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Pydantic models for request/response
+class RecipeRequest(BaseModel):
+    name: str
+    ingredients: List[str]
+    instructions: List[str]
+    cooking_time: int
+    difficulty: str = "medium"
+
+class RecipeResponse(BaseModel):
+    id: str
+    name: str
+    ingredients: List[str]
+    instructions: List[str]
+    cooking_time: int
+    difficulty: str
+    created_at: str
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -48,242 +50,124 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize ML models (lazy loading)
-food_model = None
-nutrition_analyzer = None
-recipe_recommender = None
-tag_generator = None
-
-async def get_food_model():
-    global food_model
-    if food_model is None:
-        food_model = FoodRecognitionModel()
-        await food_model.load_model()
-    return food_model
-
-async def get_nutrition_analyzer():
-    global nutrition_analyzer
-    if nutrition_analyzer is None:
-        nutrition_analyzer = NutritionAnalyzer()
-        await nutrition_analyzer.load_model()
-    return nutrition_analyzer
-
-async def get_recipe_recommender():
-    global recipe_recommender
-    if recipe_recommender is None:
-        recipe_recommender = RecipeRecommender()
-        await recipe_recommender.load_model()
-    return recipe_recommender
-
-async def get_tag_generator():
-    global tag_generator
-    if tag_generator is None:
-        tag_generator = TagGenerator()
-        await tag_generator.load_model()
-    return tag_generator
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize ML models on startup"""
-    logger.info("Starting ML backend...")
-    try:
-        # Pre-load critical models
-        await get_food_model()
-        await get_nutrition_analyzer()
-        logger.info("ML models loaded successfully")
-    except Exception as e:
-        logger.error(f"Error loading ML models: {e}")
+# In-memory storage for demo
+recipes_db = {}
+recipe_counter = 0
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "message": "ML backend is running"}
 
-@app.post("/analyze-food-image", response_model=IngredientRecognitionResponse)
-async def analyze_food_image(
-    file: UploadFile = File(...),
-    food_model: FoodRecognitionModel = Depends(get_food_model)
+@app.get("/recipes", response_model=List[RecipeResponse])
+async def get_recipes(
+    limit: int = Query(10, description="Number of recipes to return"),
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty level")
 ):
-    """
-    Analyze a food image and identify ingredients with confidence scores
-    """
-    try:
-        if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
-        
-        # Process the uploaded image
-        image = await process_uploaded_image(file)
-        
-        # Analyze with ML model
-        result = await food_model.analyze_image(image)
-        
-        return IngredientRecognitionResponse(**result)
+    """Get all recipes with optional filtering"""
+    recipes = list(recipes_db.values())
     
-    except Exception as e:
-        logger.error(f"Error analyzing food image: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/generate-recipe-tags", response_model=List[str])
-async def generate_recipe_tags(
-    request: RecipeAnalysisRequest,
-    tag_generator: TagGenerator = Depends(get_tag_generator)
-):
-    """
-    Generate AI tags for a recipe based on ingredients and instructions
-    """
-    try:
-        tags = await tag_generator.generate_tags(
-            ingredients=request.ingredients,
-            instructions=request.instructions,
-            cuisine=request.cuisine,
-            category=request.category
-        )
-        return tags
+    if difficulty:
+        recipes = [r for r in recipes if r["difficulty"] == difficulty]
     
-    except Exception as e:
-        logger.error(f"Error generating recipe tags: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return recipes[:limit]
 
-@app.post("/analyze-nutrition", response_model=NutritionAnalysisResponse)
-async def analyze_nutrition(
-    request: RecipeAnalysisRequest,
-    nutrition_analyzer: NutritionAnalyzer = Depends(get_nutrition_analyzer)
-):
-    """
-    Calculate nutritional information for a recipe
-    """
-    try:
-        nutrition = await nutrition_analyzer.calculate_nutrition(
-            ingredients=request.ingredients,
-            servings=request.servings or 1
-        )
-        return NutritionAnalysisResponse(**nutrition)
+@app.get("/recipes/{recipe_id}", response_model=RecipeResponse)
+async def get_recipe(recipe_id: str):
+    """Get a specific recipe by ID"""
+    if recipe_id not in recipes_db:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return recipes_db[recipe_id]
+
+@app.post("/recipes", response_model=RecipeResponse)
+async def create_recipe(recipe: RecipeRequest):
+    """Create a new recipe"""
+    global recipe_counter
+    recipe_counter += 1
+    recipe_id = f"recipe_{recipe_counter}"
     
-    except Exception as e:
-        logger.error(f"Error analyzing nutrition: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/generate-pairings", response_model=List[str])
-async def generate_pairings(
-    request: RecipeAnalysisRequest,
-    recipe_recommender: RecipeRecommender = Depends(get_recipe_recommender)
-):
-    """
-    Generate pairing suggestions for a recipe
-    """
-    try:
-        pairings = await recipe_recommender.generate_pairings(
-            ingredients=request.ingredients,
-            cuisine=request.cuisine,
-            category=request.category
-        )
-        return pairings
+    new_recipe = {
+        "id": recipe_id,
+        "name": recipe.name,
+        "ingredients": recipe.ingredients,
+        "instructions": recipe.instructions,
+        "cooking_time": recipe.cooking_time,
+        "difficulty": recipe.difficulty,
+        "created_at": "2024-01-01T00:00:00Z"  # In real app, use datetime.now()
+    }
     
-    except Exception as e:
-        logger.error(f"Error generating pairings: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    recipes_db[recipe_id] = new_recipe
+    logger.info(f"Created recipe: {recipe.name}")
+    return new_recipe
 
-@app.post("/recommend-recipes", response_model=RecipeRecommendationResponse)
-async def recommend_recipes(
-    request: RecipeRecommendationRequest,
-    recipe_recommender: RecipeRecommender = Depends(get_recipe_recommender)
-):
-    """
-    Find recipes based on natural language criteria
-    """
-    try:
-        recommendations = await recipe_recommender.find_recipes(
-            query=request.query,
-            dietary_restrictions=request.dietary_restrictions,
-            max_results=request.max_results or 10
-        )
-        return RecipeRecommendationResponse(recommendations=recommendations)
+@app.put("/recipes/{recipe_id}", response_model=RecipeResponse)
+async def update_recipe(recipe_id: str, recipe: RecipeRequest):
+    """Update an existing recipe"""
+    if recipe_id not in recipes_db:
+        raise HTTPException(status_code=404, detail="Recipe not found")
     
-    except Exception as e:
-        logger.error(f"Error recommending recipes: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/generate-meal-plan", response_model=MealPlanResponse)
-async def generate_meal_plan(
-    request: MealPlanRequest,
-    recipe_recommender: RecipeRecommender = Depends(get_recipe_recommender)
-):
-    """
-    Generate a personalized meal plan
-    """
-    try:
-        meal_plan = await recipe_recommender.generate_meal_plan(
-            days=request.days,
-            dietary_restrictions=request.dietary_restrictions,
-            cuisine_preferences=request.cuisine_preferences,
-            cooking_time_limit=request.cooking_time_limit,
-            servings=request.servings
-        )
-        return MealPlanResponse(meal_plan=meal_plan)
+    updated_recipe = {
+        "id": recipe_id,
+        "name": recipe.name,
+        "ingredients": recipe.ingredients,
+        "instructions": recipe.instructions,
+        "cooking_time": recipe.cooking_time,
+        "difficulty": recipe.difficulty,
+        "created_at": recipes_db[recipe_id]["created_at"]
+    }
     
-    except Exception as e:
-        logger.error(f"Error generating meal plan: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    recipes_db[recipe_id] = updated_recipe
+    logger.info(f"Updated recipe: {recipe.name}")
+    return updated_recipe
 
-@app.post("/analyze-recipe-complete", response_model=RecipeAnalysisResponse)
-async def analyze_recipe_complete(
-    request: RecipeAnalysisRequest,
-    food_model: FoodRecognitionModel = Depends(get_food_model),
-    nutrition_analyzer: NutritionAnalyzer = Depends(get_nutrition_analyzer),
-    tag_generator: TagGenerator = Depends(get_tag_generator),
-    recipe_recommender: RecipeRecommender = Depends(get_recipe_recommender)
-):
-    """
-    Complete recipe analysis including tags, nutrition, and pairings
-    """
-    try:
-        # Run all analyses in parallel for efficiency
-        tasks = [
-            tag_generator.generate_tags(
-                ingredients=request.ingredients,
-                instructions=request.instructions,
-                cuisine=request.cuisine,
-                category=request.category
-            ),
-            nutrition_analyzer.calculate_nutrition(
-                ingredients=request.ingredients,
-                servings=request.servings or 1
-            ),
-            recipe_recommender.generate_pairings(
-                ingredients=request.ingredients,
-                cuisine=request.cuisine,
-                category=request.category
-            )
-        ]
-        
-        tags, nutrition, pairings = await asyncio.gather(*tasks)
-        
-        return RecipeAnalysisResponse(
-            tags=tags,
-            nutrition=nutrition,
-            pairings=pairings,
-            difficulty=await recipe_recommender.estimate_difficulty(request.instructions)
-        )
+@app.delete("/recipes/{recipe_id}")
+async def delete_recipe(recipe_id: str):
+    """Delete a recipe"""
+    if recipe_id not in recipes_db:
+        raise HTTPException(status_code=404, detail="Recipe not found")
     
-    except Exception as e:
-        logger.error(f"Error in complete recipe analysis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    deleted_recipe = recipes_db.pop(recipe_id)
+    logger.info(f"Deleted recipe: {deleted_recipe['name']}")
+    return {"message": f"Recipe '{deleted_recipe['name']}' deleted successfully"}
 
-@app.get("/models/status")
-async def models_status():
-    """
-    Check the status of all ML models
-    """
+@app.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    """Upload an image for food recognition"""
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # In a real application, you would process the image here
+    # For now, just return file info
     return {
-        "food_recognition": food_model is not None,
-        "nutrition_analyzer": nutrition_analyzer is not None,
-        "recipe_recommender": recipe_recommender is not None,
-        "tag_generator": tag_generator is not None
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": file.size,
+        "message": "Image uploaded successfully (processing would happen here)"
+    }
+
+@app.post("/analyze-nutrition")
+async def analyze_nutrition(
+    ingredients: List[str] = Form(...),
+    serving_size: str = Form("1 serving")
+):
+    """Analyze nutrition for given ingredients"""
+    # In a real application, you would use your nutrition analyzer model
+    return {
+        "ingredients": ingredients,
+        "serving_size": serving_size,
+        "nutrition": {
+            "calories": 250,
+            "protein": 12.5,
+            "carbs": 30.2,
+            "fat": 8.1,
+            "fiber": 4.3
+        },
+        "message": "Nutrition analysis complete (using mock data)"
     }
 
 if __name__ == "__main__":
     uvicorn.run(
-        "app.main:app",
+        "main:app",  # Use relative import since we're already in the app directory
         host="0.0.0.0",
         port=8000,
         reload=True,
