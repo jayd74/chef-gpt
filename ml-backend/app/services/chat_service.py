@@ -1,13 +1,13 @@
 import json
 import logging
 import os
-import langchain_core
+# import langchain_core
 from datetime import datetime
 from typing import Dict, Any, AsyncGenerator, List, Optional
 from collections.abc import AsyncGenerator
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+# from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from openai import OpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -95,16 +95,16 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
             # Initialize state
             state = ChatState(
                 messages=[{
-                    "type": "human",
-                    "content": request.message,
+                    "type": request.type,
+                    "content": request.content,
                     "timestamp": datetime.now(),
                 }],
                 session_id=request.session_id,
                 context=request.context
             )
 
-            # Stream the initial human message
-            yield f"data: {json.dumps({'type': 'human', 'content': request.message, 'session_id': request.session_id})}\n\n"
+            # Stream the initial message
+            yield f"data: {json.dumps({'type': request.type, 'content': request.content, 'session_id': request.session_id})}\n\n"
 
             # Process with LangGraph
             async for event in chat_graph.astream_events(
@@ -116,15 +116,22 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                     event_data = event.get("data", {})
                     if isinstance(event_data, dict) and "output" in event_data:
                         final_state = event_data["output"]
-                        if hasattr(final_state, 'messages'):
-                            ai_message = next(
-                                (msg for msg in final_state.messages if msg["type"] == "ai"),
-                                None
-                            )
+                        messages = []
 
-                            if ai_message:
-                                # Stream the AI response
-                                yield f"data: {json.dumps({'type': 'ai', 'content': ai_message['content'], 'session_id': request.session_id})}\n\n"
+                        # Handle different types of final_state
+                        if hasattr(final_state, 'messages'):
+                            messages = final_state.messages
+                        elif isinstance(final_state, dict):
+                            messages = final_state.get('messages', [])
+
+                        ai_message = next(
+                            (msg for msg in messages if msg.get("type") == "ai"),
+                            None
+                        )
+
+                        if ai_message:
+                            # Stream the AI response
+                            yield f"data: {json.dumps({'type': 'ai', 'content': ai_message.get('content', ''), 'session_id': request.session_id})}\n\n"
 
                     # Send end marker
                     yield f"data: {json.dumps({'type': 'end', 'content': '', 'session_id': request.session_id})}\n\n"
@@ -160,8 +167,8 @@ async def chat_simple(request: ChatRequest) -> ChatResponse:
         # Initialize state
         state = ChatState(
             messages=[{
-                "type": "human",
-                "content": request.message,
+                "type": request.type,
+                "content": request.content,
                 "timestamp": datetime.now(),
             }],
             session_id=request.session_id,

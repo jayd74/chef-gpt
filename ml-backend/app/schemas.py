@@ -137,10 +137,11 @@ class SimilarRecipeResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
-    error_code: Optional[str] = None 
+    error_code: Optional[str] = None
 
 class ChatRequest(BaseModel):
-    message: str
+    type: str  # "human", "ai", "system"
+    content: str
     session_id: str = "default"
     context: Dict[str, Any] = {}
 

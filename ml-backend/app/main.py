@@ -6,8 +6,9 @@ import sys
 from dotenv import load_dotenv
 from pathlib import Path
 import logging
-from schemas import ChatRequest
-
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+from datetime import date
 
 # Add the parent directory to Python path to allow importing app modules
 sys.path.append(str(Path(__file__).parent.parent))
@@ -17,6 +18,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
+
+# Import schemas from app.schemas
+from app.schemas import ChatRequest, ChatResponse, ChatState
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -86,4 +90,4 @@ if __name__ == "__main__":
         port=8000,
         reload=True,
         log_level="info"
-    ) 
+    )

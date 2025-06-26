@@ -30,31 +30,95 @@ export default function ChatbotWidget() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
+
     try {
       const res = await fetch(`${ML_BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          type: "human",
+          content: input,
+          session_id: "default",
+        }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "bot",
-            content: data.response || data.message || "(No response)",
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "bot",
-            content: "Sorry, there was an error with the chat service.",
-          },
-        ]);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      // Handle streaming response
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let botMessage = "";
+      let isFirstMessage = true;
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6)); // Remove 'data: ' prefix
+
+                if (data.type === "human" && isFirstMessage) {
+                  // Skip the initial human message echo
+                  isFirstMessage = false;
+                  continue;
+                }
+
+                if (data.type === "ai") {
+                  // Add or update bot message
+                  botMessage = data.content;
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
+                    if (lastMessage && lastMessage.role === "bot") {
+                      lastMessage.content = botMessage;
+                    } else {
+                      newMessages.push({ role: "bot", content: botMessage });
+                    }
+                    return newMessages;
+                  });
+                }
+
+                if (data.type === "token") {
+                  // Stream individual tokens
+                  botMessage += data.content;
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
+                    if (lastMessage && lastMessage.role === "bot") {
+                      lastMessage.content = botMessage;
+                    } else {
+                      newMessages.push({ role: "bot", content: botMessage });
+                    }
+                    return newMessages;
+                  });
+                }
+
+                if (data.type === "end") {
+                  // Stream ended
+                  break;
+                }
+
+                if (data.type === "error") {
+                  throw new Error(data.content);
+                }
+              } catch (parseError) {
+                console.error("Error parsing SSE data:", parseError);
+              }
+            }
+          }
+        }
       }
     } catch (err) {
+      console.log({ err });
+      console.error("Chat error:", err);
       setMessages((prev) => [
         ...prev,
         { role: "bot", content: "Network error. Please try again later." },
