@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import langchain_core
 from datetime import datetime
 from typing import Dict, Any, AsyncGenerator, List, Optional
 from collections.abc import AsyncGenerator
@@ -21,7 +22,7 @@ def get_llm():
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise ValueError("OPENAI_API_KEY environment variable is required")
-    
+
     client = OpenAI(api_key=api_key)
     return client
 
@@ -29,7 +30,7 @@ def get_llm():
 async def chat_node(state: ChatState) -> ChatState:
     """Process the chat message and generate a response"""
     client = get_llm()
-    
+
     # Convert messages to OpenAI format
     messages = []
     for msg in state.messages:
@@ -39,11 +40,11 @@ async def chat_node(state: ChatState) -> ChatState:
             messages.append({"role": "assistant", "content": msg["content"]})
         elif msg["type"] == "system":
             messages.append({"role": "system", "content": msg["content"]})
-    
+
     # Add system context if available
     if state.context.get("system_prompt"):
         messages.insert(0, {"role": "system", "content": state.context["system_prompt"]})
-    
+
     # Generate response
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -51,36 +52,36 @@ async def chat_node(state: ChatState) -> ChatState:
         temperature=0.7,
         stream=True
     )
-    
+
     # Collect the full response
     full_content = ""
     for chunk in response:
         if chunk.choices[0].delta.content:
             full_content += chunk.choices[0].delta.content
-    
+
     # Add AI response to state
     state.messages.append({
         "type": "ai",
         "content": full_content,
         "timestamp": datetime.now(),
     })
-    
+
     return state
 
 # Create the LangGraph workflow
 def create_chat_graph():
     """Create the LangGraph workflow for chat"""
     workflow = StateGraph(ChatState)
-    
+
     # Add nodes
     workflow.add_node("chat", chat_node)
-    
+
     # Set entry point
     workflow.set_entry_point("chat")
-    
+
     # Add edges
     workflow.add_edge("chat", END)
-    
+
     # Compile the graph
     return workflow.compile(checkpointer=MemorySaver())
 
@@ -101,10 +102,10 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                 session_id=request.session_id,
                 context=request.context
             )
-            
+
             # Stream the initial human message
             yield f"data: {json.dumps({'type': 'human', 'content': request.message, 'session_id': request.session_id})}\n\n"
-            
+
             # Process with LangGraph
             async for event in chat_graph.astream_events(
                 state,
@@ -120,15 +121,15 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                                 (msg for msg in final_state.messages if msg["type"] == "ai"),
                                 None
                             )
-                            
+
                             if ai_message:
                                 # Stream the AI response
                                 yield f"data: {json.dumps({'type': 'ai', 'content': ai_message['content'], 'session_id': request.session_id})}\n\n"
-                    
+
                     # Send end marker
                     yield f"data: {json.dumps({'type': 'end', 'content': '', 'session_id': request.session_id})}\n\n"
                     break
-                
+
                 elif event["event"] == "on_chat_model_stream":
                     # Stream individual tokens
                     event_data = event.get("data", {})
@@ -136,11 +137,11 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                         chunk = event_data["chunk"]
                         if hasattr(chunk, 'content') and chunk.content:
                             yield f"data: {json.dumps({'type': 'token', 'content': chunk.content, 'session_id': request.session_id})}\n\n"
-        
+
         except Exception as e:
             logger.error(f"Error in chat stream: {e}")
             yield f"data: {json.dumps({'type': 'error', 'content': str(e), 'session_id': request.session_id})}\n\n"
-    
+
     return StreamingResponse(
         generate_stream(),
         media_type="text/event-stream",
@@ -166,13 +167,13 @@ async def chat_simple(request: ChatRequest) -> ChatResponse:
             session_id=request.session_id,
             context=request.context
         )
-        
+
         # Process with LangGraph
         result = await chat_graph.ainvoke(
             state,
             config={"configurable": {"thread_id": request.session_id}}
         )
-        
+
         # Get AI response - handle both ChatState and dict types
         if hasattr(result, 'messages'):
             messages = result.messages
@@ -180,12 +181,12 @@ async def chat_simple(request: ChatRequest) -> ChatResponse:
             messages = result['messages']
         else:
             messages = []
-        
+
         ai_message = next(
             (msg for msg in messages if msg["type"] == "ai"),
             None
         )
-        
+
         if ai_message:
             return ChatResponse(
                 type="ai",
@@ -198,7 +199,7 @@ async def chat_simple(request: ChatRequest) -> ChatResponse:
                 content="No response generated",
                 session_id=request.session_id
             )
-    
+
     except Exception as e:
         logger.error(f"Error in chat: {e}")
         return ChatResponse(
