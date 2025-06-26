@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { flyer_url } = body;
+    const { flyer_url, banner } = body;
 
-    if (!flyer_url) {
+    if (!flyer_url && !banner) {
       return NextResponse.json(
-        { error: "Flyer URL is required" },
+        { error: "Either flyer_url or banner is required" },
         { status: 400 }
       );
     }
@@ -19,9 +19,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        flyer_url: flyer_url,
-      }),
+      body: JSON.stringify(banner ? { banner } : { flyer_url }),
     });
 
     if (!response.ok) {

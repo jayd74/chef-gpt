@@ -21,6 +21,16 @@ interface FlyerAnalysis {
   flyer_url?: string;
 }
 
+interface FlyerResponse {
+  llm_response: string;
+  urls: {
+    url1?: string;
+    url2?: string;
+    url3?: string;
+    [key: string]: string | undefined;
+  };
+}
+
 interface FlyerDinnerUploadProps {
   onAnalysisComplete?: (analysis: FlyerAnalysis) => void;
 }
@@ -31,12 +41,14 @@ export default function FlyerDinnerUpload({
   const [flyerUrl, setFlyerUrl] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<FlyerAnalysis | null>(null);
+  const [flyerUrls, setFlyerUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>("");
 
-  const analyzeFlyer = async () => {
-    if (!flyerUrl.trim()) {
-      setError("Please enter a flyer URL");
+  const analyzeFlyer = async (banner?: string) => {
+    if (!flyerUrl.trim() && !banner) {
+      setError("Please enter a flyer URL or select a banner");
       return;
     }
 
@@ -44,29 +56,40 @@ export default function FlyerDinnerUpload({
     setError(null);
 
     try {
+      const payload = banner ? { banner } : { flyer_url: flyerUrl.trim() };
+
       const response = await fetch("/api/flyer-dinner", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          flyer_url: flyerUrl.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         throw new Error("Failed to analyze flyer");
       }
 
-      const data = JSON.parse(await response.json());
+      const data: FlyerResponse = await response.json();
 
-      setAnalysis(data);
-      onAnalysisComplete?.(data);
+      // Parse the llm_response JSON string
+      const parsedAnalysis: FlyerAnalysis = JSON.parse(data.llm_response);
+
+      // Extract flyer URLs
+      const urls = Object.values(data.urls).filter((url) => url) as string[];
+      setFlyerUrls(urls);
+
+      setAnalysis(parsedAnalysis);
+      onAnalysisComplete?.(parsedAnalysis);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleBannerClick = (banner: string) => {
+    analyzeFlyer(banner);
   };
 
   const handleIngredientClick = (ingredient: string) => {
@@ -75,75 +98,153 @@ export default function FlyerDinnerUpload({
     window.open(url, "_blank");
   };
 
-  const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
+  const openModal = (imageUrl?: string) => {
+    if (imageUrl) {
+      setSelectedImage(imageUrl);
+    }
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedImage("");
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {/* URL Input Section */}
+      {/* Banner Buttons Section */}
       <div className="bg-white rounded-3xl shadow-lg p-6 mb-6 border border-black/10">
-        <h2 className="text-2xl font-bold text-black mb-4 flex items-center gap-2">
-          <ChefHat className="w-6 h-6" />
-          Flyer Dinner Planner
-        </h2>
+        <h3 className="text-xl font-bold text-black mb-4">
+          Quick Flyer Analysis
+        </h3>
         <p className="text-black/70 mb-6">
-          Enter a grocery flyer URL and get recipe suggestions based on the
-          ingredients on sale!
+          Select a grocery store banner to get recipe suggestions based on their
+          current flyer
         </p>
 
-        {/* URL Input */}
-        <div className="space-y-4">
-          <div>
-            <label
-              htmlFor="flyer-url"
-              className="block text-sm font-medium text-black mb-2"
-            >
-              Flyer URL
-            </label>
-            <div className="flex gap-3">
-              <input
-                id="flyer-url"
-                type="url"
-                value={flyerUrl}
-                onChange={(e) => setFlyerUrl(e.target.value)}
-                placeholder="https://example.com/flyer-image.jpg"
-                className="flex-1 px-4 py-3 border border-black/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-black placeholder-black/40"
-              />
-              <button
-                onClick={analyzeFlyer}
-                disabled={isAnalyzing || !flyerUrl.trim()}
-                className="bg-black text-yellow-400 px-6 py-3 rounded-2xl hover:bg-gray-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Link className="w-5 h-5" />
-                    Analyze
-                  </>
-                )}
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* No Frills */}
+          <button
+            onClick={() => handleBannerClick("no_frills")}
+            disabled={isAnalyzing}
+            className="group relative bg-white border-2 border-yellow-400 rounded-2xl p-6 hover:bg-yellow-50 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+                <img
+                  src="/nofrills-logo.jpg"
+                  alt="No Frills Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="text-center">
+                <h4 className="font-bold text-black text-lg">No Frills</h4>
+              </div>
             </div>
-          </div>
+          </button>
+
+          {/* Loblaws */}
+          <button
+            onClick={() => handleBannerClick("loblaws")}
+            disabled={isAnalyzing}
+            className="group relative bg-white border-2 border-red-600 rounded-2xl p-6 hover:bg-red-50 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+                <img
+                  src="/Loblaws-scaled.webp"
+                  alt="Loblaws Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="text-center">
+                <h4 className="font-bold text-black text-lg">Loblaws</h4>
+              </div>
+            </div>
+          </button>
+
+          {/* T&T */}
+          <button
+            onClick={() => handleBannerClick("t_t")}
+            disabled={isAnalyzing}
+            className="group relative bg-white border-2 border-green-600 rounded-2xl p-6 hover:bg-green-50 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+                  <img
+                    src="/tnt-logo.png"
+                    alt="tnt Logo"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+              <div className="text-center">
+                <h4 className="font-bold text-black text-lg">
+                  T&T Supermarket
+                </h4>
+              </div>
+            </div>
+          </button>
         </div>
 
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700">
-            {error}
+        {isAnalyzing && (
+          <div className="mt-6 text-center">
+            <div className="inline-flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full">
+              <Loader2 className="w-4 h-4 animate-spin text-black" />
+              <span className="text-black font-medium">Analyzing flyer...</span>
+            </div>
           </div>
         )}
       </div>
 
       {/* Thumbnail Preview Section */}
-      {flyerUrl && !isAnalyzing && (
+      {flyerUrls.length > 0 && !isAnalyzing && (
+        <div className="bg-white rounded-3xl shadow-lg p-6 mb-6 border border-black/10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-black">Flyer Gallery</h3>
+            <span className="text-sm text-black/60">
+              {flyerUrls.length} pages
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {flyerUrls.map((url, index) => (
+              <div key={index} className="relative">
+                <div
+                  className="w-full h-32 rounded-2xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => openModal(url)}
+                >
+                  <img
+                    src={url}
+                    alt={`Flyer page ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.nextElementSibling?.classList.remove(
+                        "hidden"
+                      );
+                    }}
+                  />
+                  <div className="hidden w-full h-full bg-gray-100 flex items-center justify-center">
+                    <Link className="w-8 h-8 text-gray-400" />
+                  </div>
+                </div>
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                  Page {index + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Legacy URL Preview Section */}
+      {flyerUrl && !isAnalyzing && flyerUrls.length === 0 && (
         <div className="bg-white rounded-3xl shadow-lg p-6 mb-6 border border-black/10">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-black">Flyer Preview</h3>
             <button
-              onClick={openModal}
+              onClick={() => openModal(flyerUrl)}
               className="p-2 bg-yellow-100 rounded-full hover:bg-yellow-200 transition-colors"
               title="View larger image"
             >
@@ -153,7 +254,7 @@ export default function FlyerDinnerUpload({
           <div className="relative">
             <div
               className="w-48 h-32 rounded-2xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={openModal}
+              onClick={() => openModal(flyerUrl)}
             >
               <img
                 src={flyerUrl}
@@ -189,7 +290,7 @@ export default function FlyerDinnerUpload({
             </div>
             <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
               <img
-                src={flyerUrl}
+                src={selectedImage}
                 alt="Flyer full view"
                 className="w-full h-auto rounded-2xl shadow-lg"
                 onError={(e) => {

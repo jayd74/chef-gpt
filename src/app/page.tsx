@@ -221,45 +221,6 @@ export default function Home() {
         ) : (
           <FlyerDinnerUpload />
         )}
-
-        {/* Tips Section */}
-        <div className="mt-16">
-          <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-3xl p-8 shadow-lg">
-            <div className="text-center mb-8">
-              <div className="p-3 bg-black/10 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">💡</span>
-              </div>
-              <h3 className="text-2xl font-bold text-black mb-2">
-                Tips for Best Results
-              </h3>
-              <p className="text-black/70">
-                Get the most out of your AI recipe analysis
-              </p>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white/60 rounded-2xl p-6">
-                <h4 className="font-semibold text-black mb-3">
-                  📸 Perfect Photos
-                </h4>
-                <ul className="text-black/70 space-y-2 text-sm">
-                  <li>• Ensure good lighting for clear photos</li>
-                  <li>• Include the entire dish in the frame</li>
-                  <li>• Avoid blurry or dark images</li>
-                </ul>
-              </div>
-              <div className="bg-white/60 rounded-2xl p-6">
-                <h4 className="font-semibold text-black mb-3">
-                  🎯 Best Practices
-                </h4>
-                <ul className="text-black/70 space-y-2 text-sm">
-                  <li>• Supported formats: JPG, PNG, WebP</li>
-                  <li>• Maximum file size: 10MB</li>
-                  <li>• Take photos from different angles</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
