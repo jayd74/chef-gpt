@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import { MessageCircle, X, Send, ChefHat } from "lucide-react";
 
 const ML_BACKEND_URL =
   process.env.NEXT_PUBLIC_ML_BACKEND_URL || "http://localhost:8000";
@@ -13,17 +12,17 @@ interface ChatMessage {
 }
 
 export default function ChatbotWidget() {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open && messagesEndRef.current) {
+    if (isOpen && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, open]);
+  }, [messages, isOpen]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -129,154 +128,123 @@ export default function ChatbotWidget() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !loading) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim() && !loading) {
       sendMessage();
     }
   };
 
   return (
     <>
-      {/* Floating Button */}
-      {!open && (
-        <button
-          className="fixed bottom-6 right-6 z-50 bg-orange-600 hover:bg-orange-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition"
-          onClick={() => setOpen(true)}
-          aria-label="Open chatbot"
-        >
-          <MessageCircle className="h-7 w-7" />
-        </button>
-      )}
+      {/* Floating Chat Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-6 right-6 bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black border-2 border-black rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 z-50 hover:scale-105"
+        title="Chat with ChefGPT"
+      >
+        {isOpen ? (
+          <X className="h-6 w-6" />
+        ) : (
+          <MessageCircle className="h-6 w-6" />
+        )}
+      </button>
 
       {/* Chat Window */}
-      {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-orange-200 h-[500px]">
+      {isOpen && (
+        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white/95 backdrop-blur-sm border border-black/10 rounded-2xl shadow-2xl flex flex-col z-50">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-orange-600 rounded-t-xl">
-            <div className="flex items-center gap-2 text-white font-semibold">
-              <MessageCircle className="h-5 w-5" />
-              ChefGPT Chatbot
+          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 border-b border-black/10 p-6 rounded-t-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-black/10 rounded-xl">
+                  <ChefHat className="h-5 w-5 text-black" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-black text-lg">
+                    ChefGPT Assistant
+                  </h3>
+                  <p className="text-xs text-black/70">
+                    AI-powered cooking help
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-black hover:text-gray-700 transition-colors p-1 hover:bg-black/10 rounded-lg"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <button onClick={() => setOpen(false)} aria-label="Close chatbot">
-              <X className="h-5 w-5 text-white" />
-            </button>
           </div>
 
           {/* Messages */}
-          <div
-            className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-orange-50"
-            style={{ minHeight: 250, maxHeight: 400 }}
-          >
-            {messages.length === 0 && (
-              <div className="text-center text-gray-400 text-sm mt-8">
-                Ask me anything about recipes, ingredients, or cooking!
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-yellow-50/50 to-white">
+            {messages.length === 0 ? (
+              <div className="text-center text-black py-8">
+                <div className="p-4 bg-yellow-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <ChefHat className="h-8 w-8 text-black" />
+                </div>
+                <h3 className="font-semibold text-black mb-2">
+                  Welcome to ChefGPT!
+                </h3>
+                <p className="text-sm text-black/60">
+                  Ask me anything about cooking, recipes, or ingredients.
+                </p>
               </div>
-            )}
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+            ) : (
+              messages.map((message, index) => (
                 <div
-                  className={`px-3 py-2 rounded-lg max-w-[80%] text-sm shadow-sm ${
-                    msg.role === "user"
-                      ? "bg-orange-600 text-white rounded-br-none"
-                      : "bg-white text-gray-800 border border-orange-200 rounded-bl-none"
+                  key={index}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {msg.role === "user" ? (
-                    msg.content
-                  ) : (
-                    <div className="markdown-content">
-                      <ReactMarkdown
-                        components={{
-                          p: ({ children }) => (
-                            <p className="mb-2 last:mb-0">{children}</p>
-                          ),
-                          code: ({ children }) => (
-                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">
-                              {children}
-                            </code>
-                          ),
-                          pre: ({ children }) => (
-                            <pre className="bg-gray-100 p-2 rounded text-xs font-mono overflow-x-auto mb-2">
-                              {children}
-                            </pre>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc list-inside mb-2 space-y-1">
-                              {children}
-                            </ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="list-decimal list-inside mb-2 space-y-1">
-                              {children}
-                            </ol>
-                          ),
-                          li: ({ children }) => (
-                            <li className="text-sm">{children}</li>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold">
-                              {children}
-                            </strong>
-                          ),
-                          em: ({ children }) => (
-                            <em className="italic">{children}</em>
-                          ),
-                          h1: ({ children }) => (
-                            <h1 className="text-lg font-bold mb-2">
-                              {children}
-                            </h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-base font-bold mb-2">
-                              {children}
-                            </h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-sm font-bold mb-1">
-                              {children}
-                            </h3>
-                          ),
-                          blockquote: ({ children }) => (
-                            <blockquote className="border-l-4 border-orange-300 pl-3 italic text-gray-600 mb-2">
-                              {children}
-                            </blockquote>
-                          ),
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
+                  <div
+                    className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                      message.role === "user"
+                        ? "bg-gradient-to-r from-black to-gray-800 text-yellow-400"
+                        : "bg-white text-black border border-black/10 shadow-md"
+                    }`}
+                  >
+                    <div className="markdown-content text-sm leading-relaxed">
+                      {message.content}
                     </div>
-                  )}
+                  </div>
+                </div>
+              ))
+            )}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-white text-black border border-black/10 rounded-2xl p-4 shadow-md">
+                  <div className="flex items-center space-x-3">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                    <span className="text-sm font-medium">Thinking...</span>
+                  </div>
                 </div>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            )}
           </div>
 
           {/* Input */}
-          <div className="flex items-center gap-2 px-4 py-3 border-t bg-white rounded-b-xl">
-            <input
-              type="text"
-              className="flex-1 px-3 py-2 rounded-full border border-gray-200 outline-none text-sm"
-              placeholder="Type your message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-            />
-            <button
-              className="bg-orange-600 hover:bg-orange-700 text-white rounded-full p-2 flex items-center justify-center disabled:opacity-50"
-              onClick={sendMessage}
-              disabled={loading || !input.trim()}
-              aria-label="Send message"
-            >
-              <Send className="h-5 w-5" />
-            </button>
+          <div className="border-t border-black/10 p-6 bg-white/80 backdrop-blur-sm rounded-b-2xl">
+            <form onSubmit={handleSubmit} className="flex space-x-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about cooking..."
+                className="flex-1 px-4 py-3 border-2 border-black/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-black placeholder-black/50 font-medium"
+                disabled={loading}
+              />
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className="bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black disabled:bg-gray-400 disabled:text-gray-600 px-4 py-3 rounded-xl border-2 border-black shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
 }
 
 @theme inline {
@@ -14,8 +14,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --foreground: #ffffff;
   }
 }
 
@@ -25,7 +25,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Chat widget markdown styles */
+/* Chat widget markdown styles - Yellow and Black theme */
 .markdown-content {
   line-height: 1.5;
   word-wrap: break-word;
@@ -36,24 +36,27 @@ body {
 }
 
 .markdown-content code {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: #fef3c7;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-family: 'Courier New', monospace;
+  border: 1px solid #000000;
 }
 
 .markdown-content pre {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #fef3c7;
   padding: 0.5rem;
   border-radius: 0.25rem;
   overflow-x: auto;
   margin-bottom: 0.5rem;
+  border: 1px solid #000000;
 }
 
 .markdown-content pre code {
   background: none;
   padding: 0;
+  border: none;
 }
 
 .markdown-content ul,
@@ -67,11 +70,12 @@ body {
 }
 
 .markdown-content blockquote {
-  border-left: 3px solid #f97316;
+  border-left: 3px solid #000000;
   padding-left: 0.75rem;
   margin: 0.5rem 0;
   font-style: italic;
-  color: #6b7280;
+  color: #000000;
+  background-color: #fef3c7;
 }
 
 .markdown-content h1,
@@ -79,13 +83,16 @@ body {
 .markdown-content h3 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: bold;
+  color: #000000;
 }
 
 .markdown-content strong {
-  font-weight: 600;
+  font-weight: bold;
+  color: #000000;
 }
 
 .markdown-content em {
   font-style: italic;
+  color: #000000;
 }
