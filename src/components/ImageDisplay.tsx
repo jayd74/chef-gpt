@@ -181,13 +181,6 @@ export default function ImageDisplay({
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={handleBuyAllIngredients}
-                    className="mt-2 w-full bg-black text-yellow-400 text-xs px-3 py-2 rounded-full hover:bg-gray-800 transition-colors font-semibold"
-                    title="Buy all ingredients at No Frills"
-                  >
-                    Buy All Ingredients
-                  </button>
                 </div>
               )}
 
@@ -402,13 +395,6 @@ export default function ImageDisplay({
                         )
                       )}
                     </div>
-                    <button
-                      onClick={handleBuyAllIngredients}
-                      className="bg-black text-yellow-400 px-4 py-2 rounded-full hover:bg-gray-800 transition-colors font-semibold"
-                      title="Buy all ingredients at No Frills"
-                    >
-                      Buy All Ingredients
-                    </button>
                   </div>
                 )}
 
@@ -441,6 +427,37 @@ export default function ImageDisplay({
                 <div>
                   <h4 className="font-semibold text-black mb-3">Recipe</h4>
                   <div className="bg-white/50 rounded-2xl p-4 border border-black/10">
+                    <style jsx>{`
+                      ol {
+                        list-style: none;
+                        counter-reset: step-counter;
+                        padding-left: 0;
+                      }
+                      ol li {
+                        counter-increment: step-counter;
+                        position: relative;
+                        padding-left: 2rem;
+                        margin-bottom: 0.75rem;
+                        color: rgba(0, 0, 0, 0.8);
+                        line-height: 1.6;
+                      }
+                      ol li::before {
+                        content: counter(step-counter);
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        background: #fbbf24;
+                        color: black;
+                        width: 1.5rem;
+                        height: 1.5rem;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.875rem;
+                        font-weight: 600;
+                      }
+                    `}</style>
                     <ReactMarkdown>{image.analysis.recipe}</ReactMarkdown>
                   </div>
                 </div>
