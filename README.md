@@ -22,6 +22,15 @@ The application consists of two main components:
 
 ## 🚀 Features
 
+### 📸 Food Photo Upload & Analysis
+- **Drag & Drop Interface**: Easy image upload with visual feedback
+- **Camera Capture**: Direct photo capture on mobile devices
+- **Base64 Storage**: Efficient image storage in database
+- **Real-time Analysis**: Instant AI-powered food recognition
+- **Recipe Generation**: Automatic recipe suggestions based on detected food
+- **Nutritional Analysis**: Detailed nutritional information
+- **Image History**: Persistent storage of uploaded images and analysis
+
 ### Recipe Management
 - ✅ Create and upload user-generated recipes
 - ✅ Rich image upload with robust photo management
@@ -87,7 +96,7 @@ The application consists of two main components:
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Python 3.9+
+- Python 3.11+ (recommended for ML compatibility)
 - PostgreSQL database
 - Git
 
@@ -110,7 +119,7 @@ cp .env.example .env.local
 # - DATABASE_URL: PostgreSQL connection string
 # - NEXTAUTH_SECRET: Random secret for NextAuth
 # - UPLOADTHING_SECRET: UploadThing API keys
-# - NEXT_PUBLIC_ML_BACKEND_URL: ML backend URL (http://localhost:8000)
+# - ML_BACKEND_URL: ML backend URL (http://localhost:8000)
 
 # Generate Prisma client and run migrations
 npx prisma generate
@@ -126,8 +135,8 @@ npm run dev
 # Navigate to ML backend directory
 cd ml-backend
 
-# Create virtual environment
-python -m venv venv
+# Create virtual environment with Python 3.11
+python3.11 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
@@ -165,13 +174,71 @@ CREATE DATABASE recipe_ai_db;
 2. **ML Backend**: http://localhost:8000
 3. **API Docs**: http://localhost:8000/docs
 
+## 📸 Food Photo Upload Feature
+
+### Usage
+1. **Upload Image**: Use the drag & drop area or click "Choose File" to upload a food photo
+2. **Analysis**: Click "Analyze" to process the image with AI
+3. **View Results**: See detected food, nutritional info, ingredients, and recipe suggestions
+4. **History**: All uploaded images are stored and can be viewed in the right panel
+
+### API Endpoints
+
+#### POST /api/recipe-analysis
+Upload a food image for analysis.
+
+**Request Body:**
+```json
+{
+  "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...",
+  "filename": "food-photo.jpg"
+}
+```
+
+**Response:**
+```json
+{
+  "food_name": "Pizza Margherita",
+  "confidence": 0.95,
+  "calories": 285,
+  "cooking_time": 25,
+  "ingredients": ["flour", "tomatoes", "mozzarella", "basil"],
+  "recipe": "1. Prepare the dough... 2. Add toppings... 3. Bake at 450°F for 20-25 minutes"
+}
+```
+
+#### GET /api/recipe-analysis
+Retrieve all uploaded food images and their analysis.
+
+### Database Schema
+
+#### FoodImage Model
+```prisma
+model FoodImage {
+  id          String   @id @default(cuid())
+  filename    String
+  base64      String   @db.Text
+  uploadedAt  DateTime @default(now())
+  analysis    Json?
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId    String?
+  recipe      Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+}
+```
+
 ## 📁 Project Structure
 
 ```
 recipe-ai-app/
 ├── src/                          # Next.js frontend
 │   ├── app/                      # App router pages
+│   │   ├── api/
+│   │   │   └── recipe-analysis/  # Food photo analysis API
 │   │   ├── components/               # React components
+│   │   │   ├── ui/                   # Reusable UI components
+│   │   │   ├── ImageUpload.tsx       # Image upload component
+│   │   │   └── ImageDisplay.tsx      # Image display component
 │   │   ├── lib/                      # Utilities and configurations
 │   │   └── styles/                   # CSS and styling
 │   ├── ml-backend/                   # Python ML backend
@@ -198,7 +265,6 @@ recipe-ai-app/
 - **YOLO v8**: Object detection and ingredient localization
 - **CLIP**: Semantic understanding of food images
 - **ResNet**: Custom food classification
-- **OpenCV**: Image preprocessing and feature extraction
 
 ### Natural Language Processing
 - **Sentence Transformers**: Recipe similarity and search
