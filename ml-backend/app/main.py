@@ -29,7 +29,7 @@ class RecipeAnalysisRequest(BaseModel):
     image: str
 
 class FlyerDinnerRequest(BaseModel):
-    flyer_url: str
+    banner: str
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -63,7 +63,7 @@ async def recipe_endpoint(request: RecipeAnalysisRequest):
 
 @app.post("/flyer_dinner")
 async def flyer_dinner_endpoint(request: FlyerDinnerRequest):
-    return await generate_flyer_dinner(request.flyer_url)
+    return await generate_flyer_dinner(request.banner)
 
 
 @app.post("/chat")

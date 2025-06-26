@@ -7,12 +7,19 @@ import base64
 import requests
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+banner_flyer_dict = {"no_frills":
+                     ["https://flyers.smartcanucks.ca/uploads/pages/270945/no-frills-west-flyer-june-26-to-july-23-2.jpg",
+"https://flyers.smartcanucks.ca/uploads/pages/270945/no-frills-west-flyer-june-26-to-july-23-1.jpg",
+"https://flyers.smartcanucks.ca/uploads/pages/270945/no-frills-west-flyer-june-26-to-july-23-3.jpg"],
+"loblaws": ["https://flyers.smartcanucks.ca/uploads/pages/270962/loblaws-on-flyer-june-26-to-july-21-1.jpg",
+            "https://flyers.smartcanucks.ca/uploads/pages/270962/loblaws-on-flyer-june-26-to-july-21-2.jpg",
+            "https://flyers.smartcanucks.ca/uploads/pages/270962/loblaws-on-flyer-june-26-to-july-21-3.jpg"],
+            "t_t": ["https://flyers.smartcanucks.ca/uploads/pages/270683/tt-supermarket-gta-flyer-june-20-to-261-1.jpg",
+                    "https://flyers.smartcanucks.ca/uploads/pages/270683/tt-supermarket-gta-flyer-june-20-to-261-2.jpg",
+                    "https://flyers.smartcanucks.ca/uploads/pages/270683/tt-supermarket-gta-flyer-june-20-to-261-3.jpg"]}
 
-
-async def generate_flyer_dinner(flyer_url):
-    if not flyer_url:
-        flyer_url = "https://flyers.smartcanucks.ca/uploads/pages/270945/no-frills-west-flyer-june-26-to-july-23-1.jpg"
-    # image_base64 = image_url_to_base64()
+async def generate_flyer_dinner(banner):
+    urls = banner_flyer_dict[banner]
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=[
@@ -21,13 +28,20 @@ async def generate_flyer_dinner(flyer_url):
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "Extract the products on this flyer. Generate one dinner plan for 2 that utilizes these products as much as possible. The ingredients in the recipe need to match the flyer's product name if the ingredient comes from the flyer product. Estimate the cost of the dinner.",
+                        "text": "Extract all products listed in these flyers. Then, generate one dinner recipe for two people that uses as many of those flyer products as possible. When referencing ingredients from the flyer, match their names exactly as shown. Finally, estimate the total cost of the dinner based on the flyer prices.",
                     },
                     {
                         "type": "input_image",
-                        # "image_url": f"{image_url}",
-                        "image_url": flyer_url
+                        "image_url": urls[0]
                     },
+                    {
+                        "type": "input_image",
+                        "image_url": urls[1]
+                    },
+                    {
+                        "type": "input_image",
+                        "image_url": urls[2]
+                    },              
                 ],
             }
         ],
@@ -78,5 +92,8 @@ async def generate_flyer_dinner(flyer_url):
             }
         },
     )
-    return response.output_text
-
+    return {"llm_response": response.output_text,
+            "urls":
+            {"url1": urls[0],
+            "url2": urls[1],
+            "url3": urls[2]}}
