@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 const ML_BACKEND_URL =
   process.env.NEXT_PUBLIC_ML_BACKEND_URL || "http://localhost:8000";
@@ -149,7 +150,7 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-80 max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-orange-200">
+        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-orange-200 h-[500px]">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-orange-600 rounded-t-xl">
             <div className="flex items-center gap-2 text-white font-semibold">
@@ -164,7 +165,7 @@ export default function ChatbotWidget() {
           {/* Messages */}
           <div
             className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-orange-50"
-            style={{ minHeight: 200, maxHeight: 320 }}
+            style={{ minHeight: 250, maxHeight: 400 }}
           >
             {messages.length === 0 && (
               <div className="text-center text-gray-400 text-sm mt-8">
@@ -185,7 +186,72 @@ export default function ChatbotWidget() {
                       : "bg-white text-gray-800 border border-orange-200 rounded-bl-none"
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === "user" ? (
+                    msg.content
+                  ) : (
+                    <div className="markdown-content">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p className="mb-2 last:mb-0">{children}</p>
+                          ),
+                          code: ({ children }) => (
+                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">
+                              {children}
+                            </code>
+                          ),
+                          pre: ({ children }) => (
+                            <pre className="bg-gray-100 p-2 rounded text-xs font-mono overflow-x-auto mb-2">
+                              {children}
+                            </pre>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-inside mb-2 space-y-1">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-inside mb-2 space-y-1">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-sm">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold">
+                              {children}
+                            </strong>
+                          ),
+                          em: ({ children }) => (
+                            <em className="italic">{children}</em>
+                          ),
+                          h1: ({ children }) => (
+                            <h1 className="text-lg font-bold mb-2">
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-base font-bold mb-2">
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-sm font-bold mb-1">
+                              {children}
+                            </h3>
+                          ),
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-4 border-orange-300 pl-3 italic text-gray-600 mb-2">
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

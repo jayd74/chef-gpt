@@ -99,15 +99,7 @@ export default function ImageDisplay({
                   <div>
                     <span className="text-gray-500">Detected Food:</span>
                     <p className="font-medium text-gray-900">
-                      {image.analysis.food_name || "Unknown"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Confidence:</span>
-                    <p className="font-medium text-gray-900">
-                      {image.analysis.confidence
-                        ? `${(image.analysis.confidence * 100).toFixed(1)}%`
-                        : "N/A"}
+                      {image.analysis.dish_name || "Unknown"}
                     </p>
                   </div>
                   {image.analysis.calories && (
