@@ -21,27 +21,43 @@ load_dotenv()
 
 # Import schemas from app.schemas
 from app.schemas import ChatRequest, ChatResponse, ChatState
+from app.models.recipe_analysis import analyze_food_image
+
+
+class RecipeAnalysisRequest(BaseModel):
+    image: str
+
 
 # Initialize FastAPI app
 app = FastAPI(
     title="Recipe AI ML Backend",
     description="Machine Learning backend for recipe analysis, ingredient recognition, and meal planning",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Next.js dev server
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ],  # Next.js dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "message": "ML backend is running"}
+
+
+@app.post("/recipe_analysis")
+async def recipe_endpoint(request: RecipeAnalysisRequest):
+    return await analyze_food_image(request.image)
+
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
@@ -49,19 +65,20 @@ async def chat_endpoint(request: ChatRequest):
     try:
         # Import here to avoid circular imports
         from app.services.chat_service import chat_stream
+
         return await chat_stream(request)
     except ImportError as e:
         logger.error(f"Import error: {e}")
         return JSONResponse(
             status_code=500,
-            content={"error": "Chat service not available. Please install required dependencies."}
+            content={
+                "error": "Chat service not available. Please install required dependencies."
+            },
         )
     except Exception as e:
         logger.error(f"Chat error: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 @app.post("/chat/simple")
 async def chat_simple_endpoint(request: ChatRequest):
@@ -69,19 +86,20 @@ async def chat_simple_endpoint(request: ChatRequest):
     try:
         # Import here to avoid circular imports
         from app.services.chat_service import chat_simple
+
         return await chat_simple(request)
     except ImportError as e:
         logger.error(f"Import error: {e}")
         return JSONResponse(
             status_code=500,
-            content={"error": "Chat service not available. Please install required dependencies."}
+            content={
+                "error": "Chat service not available. Please install required dependencies."
+            },
         )
     except Exception as e:
         logger.error(f"Chat error: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -89,5 +107,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=True,
-        log_level="info"
+        log_level="info",
     )
