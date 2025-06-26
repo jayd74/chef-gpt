@@ -6,7 +6,7 @@ import sys
 from dotenv import load_dotenv
 from pathlib import Path
 import logging
-from app.schemas import ChatRequest
+from schemas import ChatRequest
 
 
 # Add the parent directory to Python path to allow importing app modules
