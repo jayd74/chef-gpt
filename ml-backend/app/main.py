@@ -1,15 +1,12 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
-import os
 import sys
 from dotenv import load_dotenv
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import asyncio
 import logging
-from pydantic import BaseModel
+from app.schemas import ChatRequest
 
 
 # Add the parent directory to Python path to allow importing app modules
@@ -20,12 +17,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-
-# Pydantic model for chat request
-class ChatRequest(BaseModel):
-    message: str
-    session_id: str = "default"
-    context: Dict[str, Any] = {}
 
 # Initialize FastAPI app
 app = FastAPI(

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from datetime import datetime
 from typing import Dict, Any, AsyncGenerator, List, Optional
 from collections.abc import AsyncGenerator
 from fastapi.responses import StreamingResponse
@@ -9,26 +10,10 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from openai import OpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
+from app.schemas import ChatState, ChatRequest, ChatResponse
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-# Pydantic models for request/response
-class ChatRequest(BaseModel):
-    message: str
-    session_id: str = "default"
-    context: Dict[str, Any] = {}
-
-class ChatResponse(BaseModel):
-    type: str
-    content: str
-    session_id: str
-
-# Define the state structure
-class ChatState(BaseModel):
-    messages: List[Dict[str, Any]]
-    session_id: str
-    context: Dict[str, Any] = {}
 
 # Initialize LangChain components
 def get_llm():
@@ -77,7 +62,7 @@ async def chat_node(state: ChatState) -> ChatState:
     state.messages.append({
         "type": "ai",
         "content": full_content,
-        "timestamp": "2024-01-01T00:00:00Z"  # In real app, use datetime.now()
+        "timestamp": datetime.now(),
     })
     
     return state
@@ -111,7 +96,7 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                 messages=[{
                     "type": "human",
                     "content": request.message,
-                    "timestamp": "2024-01-01T00:00:00Z"
+                    "timestamp": datetime.now(),
                 }],
                 session_id=request.session_id,
                 context=request.context
@@ -176,7 +161,7 @@ async def chat_simple(request: ChatRequest) -> ChatResponse:
             messages=[{
                 "type": "human",
                 "content": request.message,
-                "timestamp": "2024-01-01T00:00:00Z"
+                "timestamp": datetime.now(),
             }],
             session_id=request.session_id,
             context=request.context

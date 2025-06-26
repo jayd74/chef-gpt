@@ -138,3 +138,19 @@ class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
     error_code: Optional[str] = None 
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: str = "default"
+    context: Dict[str, Any] = {}
+
+class ChatResponse(BaseModel):
+    type: str
+    content: str
+    session_id: str
+
+# Define the state structure
+class ChatState(BaseModel):
+    messages: List[Dict[str, Any]]
+    session_id: str
+    context: Dict[str, Any] = {}
