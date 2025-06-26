@@ -1,10 +1,10 @@
+import os
 from fastapi import FastAPI, HTTPException
 from openai import OpenAI
 from pydantic import BaseModel
 
-client = OpenAI(
-    api_key="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"
-)
+
+client = OpenAI(api_key=os.environ["OPEN_AI_API_KEY"])
 
 
 async def analyze_food_image(base64_image: str):
