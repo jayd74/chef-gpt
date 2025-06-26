@@ -52,6 +52,35 @@ export default function ImageDisplay({
     }).format(date);
   };
 
+  const getNoFrillsLink = (ingredient: string) => {
+    // Clean the ingredient name for search
+    const searchTerm = ingredient
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .trim();
+    const encodedSearch = encodeURIComponent(searchTerm);
+    return `https://www.nofrills.ca/search?search-bar=${encodedSearch}`;
+  };
+
+  const getAllIngredientsLink = () => {
+    if (!image.analysis?.ingredients) return "";
+    const allIngredients = image.analysis.ingredients.join(" ");
+    const encodedSearch = encodeURIComponent(allIngredients);
+    return `https://www.nofrills.ca/search?search-bar=${encodedSearch}`;
+  };
+
+  const handleIngredientClick = (ingredient: string) => {
+    const url = getNoFrillsLink(ingredient);
+    window.open(url, "_blank");
+  };
+
+  const handleBuyAllIngredients = () => {
+    const url = getAllIngredientsLink();
+    if (url) {
+      window.open(url, "_blank");
+    }
+  };
+
   return (
     <div className="bg-gray-50 rounded-lg p-4 border">
       <div className="flex items-start space-x-4">
@@ -193,15 +222,55 @@ export default function ImageDisplay({
                       <div className="flex flex-wrap gap-1 mt-1">
                         {image.analysis.ingredients.map(
                           (ingredient: string, index: number) => (
-                            <span
+                            <button
                               key={index}
-                              className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                              onClick={() => handleIngredientClick(ingredient)}
+                              className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded hover:bg-orange-100 hover:text-orange-800 transition-colors flex items-center gap-1 cursor-pointer"
+                              title={`Buy ${ingredient} at No Frills`}
                             >
-                              {ingredient}
-                            </span>
+                              <span>{ingredient}</span>
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                                />
+                              </svg>
+                            </button>
                           )
                         )}
                       </div>
+                      <div className="mt-2">
+                        <button
+                          onClick={handleBuyAllIngredients}
+                          className="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-1 rounded flex items-center gap-1 transition-colors"
+                          title="Buy all ingredients at No Frills"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                            />
+                          </svg>
+                          Buy All Ingredients
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Click ingredients to buy at No Frills
+                      </p>
                     </div>
                   )}
 
@@ -215,15 +284,64 @@ export default function ImageDisplay({
                       <div className="flex flex-wrap gap-1 mt-1">
                         {image.analysis.food_pairings.map(
                           (pairing: string, index: number) => (
-                            <span
+                            <button
                               key={index}
-                              className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded"
+                              onClick={() => handleIngredientClick(pairing)}
+                              className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded hover:bg-orange-100 hover:text-orange-800 transition-colors flex items-center gap-1 cursor-pointer"
+                              title={`Buy ${pairing} at No Frills`}
                             >
-                              {pairing}
-                            </span>
+                              <span>{pairing}</span>
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                                />
+                              </svg>
+                            </button>
                           )
                         )}
                       </div>
+                      <div className="mt-2">
+                        <button
+                          onClick={() => {
+                            if (image.analysis?.food_pairings) {
+                              const allPairings =
+                                image.analysis.food_pairings.join(" ");
+                              const encodedSearch =
+                                encodeURIComponent(allPairings);
+                              const url = `https://www.nofrills.ca/search?search-bar=${encodedSearch}`;
+                              window.open(url, "_blank");
+                            }
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded flex items-center gap-1 transition-colors"
+                          title="Buy all food pairings at No Frills"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                            />
+                          </svg>
+                          Buy All Pairings
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Click pairings to buy at No Frills
+                      </p>
                     </div>
                   )}
 
