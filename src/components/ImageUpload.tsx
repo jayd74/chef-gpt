@@ -117,34 +117,34 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
       {/* Drag & Drop Area */}
       <div
         ref={dropRef}
-        className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 ${
+        className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 ${
           isDragOver
-            ? "border-black bg-yellow-100 shadow-lg"
-            : "border-black/20 hover:border-black hover:bg-yellow-50 hover:shadow-md"
+            ? "border-black bg-yellow-100 shadow-lg scale-105"
+            : "border-black/20 hover:border-black hover:bg-yellow-50 hover:shadow-md hover:scale-[1.02]"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
       >
-        <div className="p-4 bg-yellow-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-          <Upload className="h-10 w-10 text-black" />
+        <div className="p-6 bg-yellow-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+          <Upload className="h-12 w-12 text-black" />
         </div>
-        <h3 className="text-lg font-bold text-black mb-3">
-          Upload Your Food Photo
-        </h3>
-        <p className="text-black/70 mb-4 leading-relaxed">
+
+        <p className="text-black/70 mb-6 leading-relaxed text-lg">
           Drop your food photo here, or{" "}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
             className="text-black underline hover:text-gray-700 font-semibold"
           >
             browse files
           </button>
         </p>
-        <p className="text-sm text-black/60">
-          Supports JPG, PNG, WebP up to 10MB
-        </p>
+        <div className="bg-white/60 rounded-2xl p-4 max-w-md mx-auto">
+          <p className="text-sm text-black/60">
+            Supports JPG, PNG, WebP up to 10MB
+          </p>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -155,17 +155,20 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
       </div>
 
       {/* Camera Capture */}
-      <div className="space-y-3">
+      <div className="space-y-4">
+        <div className="text-center">
+          <p className="text-black/60 mb-4">or</p>
+        </div>
         <button
           type="button"
           onClick={handleCameraCapture}
-          className="w-full bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black border-2 border-black py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
+          className="w-full bg-black text-yellow-400 hover:bg-gray-800 border-2 border-black py-5 px-6 rounded-3xl font-semibold transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl text-lg"
         >
-          <Camera className="h-5 w-5" />
+          <Camera className="h-6 w-6" />
           <span>Take Photo with Camera</span>
         </button>
         {cameraError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
             <p className="text-red-600 text-sm text-center">{cameraError}</p>
           </div>
         )}
@@ -173,14 +176,14 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
 
       {/* Upload Progress */}
       {isUploading && (
-        <div className="space-y-3 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <div className="space-y-4 bg-yellow-50 border border-yellow-200 rounded-3xl p-6">
           <div className="flex items-center justify-between text-sm text-black font-medium">
             <span>Processing your image...</span>
             <span>Please wait</span>
           </div>
-          <div className="w-full bg-white rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-white rounded-full h-4 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-black to-gray-800 h-3 rounded-full transition-all duration-300 animate-pulse"
+              className="bg-gradient-to-r from-black to-gray-800 h-4 rounded-full transition-all duration-300 animate-pulse"
               style={{ width: "100%" }}
             ></div>
           </div>

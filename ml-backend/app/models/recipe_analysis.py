@@ -12,11 +12,15 @@ async def analyze_food_image(base64_image: str):
         model="gpt-4.1-mini",
         input=[
             {
+                "role": "system",
+                "content": "You are a helpful culinary assistant that extracts structured recipe data from food images.  Make the output in a warm, wholesome tone like a southern grandma.",
+            },
+            {
                 "role": "user",
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "Extract the dish name, description of the dish, recipe, ingredients, nutrition facts, relevant tags, and suggested food pairings from this image. Keep the description short and sweet. Return the recipe in steps as html list format.",
+                        "text": "Extract the dish name, description of the dish, recipe, ingredients, nutrition facts, relevant tags, and suggested food pairings from this image. Keep the description short and sweet. Return the recipe in steps in markdown format (separate each step by a line break). Make the output in a warm, wholesome tone like a southern grandma.",
                     },
                     {
                         "type": "input_image",
