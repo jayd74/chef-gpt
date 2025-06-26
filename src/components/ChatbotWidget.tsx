@@ -140,7 +140,7 @@ export default function ChatbotWidget() {
       {/* Floating Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black border-2 border-black rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 z-50 hover:scale-105"
+        className="fixed bottom-6 right-6 bg-black text-yellow-400 hover:bg-gray-800 border-2 border-black rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 z-50 hover:scale-110"
         title="Chat with ChefGPT"
       >
         {isOpen ? (
@@ -152,12 +152,12 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white/95 backdrop-blur-sm border border-black/10 rounded-2xl shadow-2xl flex flex-col z-50">
+        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 border-b border-black/10 p-6 rounded-t-2xl">
+          <div className="bg-yellow-400 p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black/10 rounded-xl">
+                <div className="p-2 bg-black/10 rounded-full">
                   <ChefHat className="h-5 w-5 text-black" />
                 </div>
                 <div>
@@ -171,7 +171,7 @@ export default function ChatbotWidget() {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-black hover:text-gray-700 transition-colors p-1 hover:bg-black/10 rounded-lg"
+                className="text-black hover:text-gray-700 transition-colors p-2 hover:bg-black/10 rounded-full"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -201,9 +201,9 @@ export default function ChatbotWidget() {
                   }`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                    className={`max-w-[85%] rounded-3xl p-4 shadow-sm ${
                       message.role === "user"
-                        ? "bg-gradient-to-r from-black to-gray-800 text-yellow-400"
+                        ? "bg-black text-yellow-400"
                         : "bg-white text-black border border-black/10 shadow-md"
                     }`}
                   >
@@ -216,7 +216,7 @@ export default function ChatbotWidget() {
             )}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white text-black border border-black/10 rounded-2xl p-4 shadow-md">
+                <div className="bg-white text-black border border-black/10 rounded-3xl p-4 shadow-md">
                   <div className="flex items-center space-x-3">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
                     <span className="text-sm font-medium">Thinking...</span>
@@ -227,20 +227,20 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-black/10 p-6 bg-white/80 backdrop-blur-sm rounded-b-2xl">
+          <div className="border-t border-black/10 p-6 bg-white">
             <form onSubmit={handleSubmit} className="flex space-x-3">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about cooking..."
-                className="flex-1 px-4 py-3 border-2 border-black/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-black placeholder-black/50 font-medium"
+                className="flex-1 px-4 py-3 border-2 border-black/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-black placeholder-black/50 font-medium"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black disabled:bg-gray-400 disabled:text-gray-600 px-4 py-3 rounded-xl border-2 border-black shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+                className="bg-black text-yellow-400 hover:bg-gray-800 disabled:bg-gray-400 disabled:text-gray-600 px-4 py-3 rounded-2xl border-2 border-black shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
               >
                 <Send className="h-4 w-4" />
               </button>
