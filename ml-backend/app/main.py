@@ -22,11 +22,14 @@ load_dotenv()
 # Import schemas from app.schemas
 from app.schemas import ChatRequest, ChatResponse, ChatState
 from app.models.recipe_analysis import analyze_food_image
+from app.models.flyer_dinner import generate_flyer_dinner
 
 
 class RecipeAnalysisRequest(BaseModel):
     image: str
 
+class FlyerDinnerRequest(BaseModel):
+    flyer_url: str
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -57,6 +60,10 @@ async def health_check():
 @app.post("/recipe_analysis")
 async def recipe_endpoint(request: RecipeAnalysisRequest):
     return await analyze_food_image(request.image)
+
+@app.post("/flyer_dinner")
+async def flyer_dinner_endpoint(request: FlyerDinnerRequest):
+    return await generate_flyer_dinner(request.flyer_url)
 
 
 @app.post("/chat")
