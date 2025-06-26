@@ -9,7 +9,9 @@ import requests
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
-async def generate_flyer_dinner():
+async def generate_flyer_dinner(flyer_url):
+    if not flyer_url:
+        flyer_url = "https://flyers.smartcanucks.ca/uploads/pages/270945/no-frills-west-flyer-june-26-to-july-23-1.jpg"
     # image_base64 = image_url_to_base64()
     response = client.responses.create(
         model="gpt-4.1-mini",
@@ -24,7 +26,7 @@ async def generate_flyer_dinner():
                     {
                         "type": "input_image",
                         # "image_url": f"{image_url}",
-                        "image_url": "https://flyers.smartcanucks.ca/uploads/pages/270945/no-frills-west-flyer-june-26-to-july-23-1.jpg"
+                        "image_url": flyer_url
                     },
                 ],
             }
@@ -78,5 +80,3 @@ async def generate_flyer_dinner():
     )
     return response.output_text
 
-
-print(generate_flyer_dinner())
