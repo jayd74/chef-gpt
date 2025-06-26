@@ -79,19 +79,28 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-lg border-b-2 border-black/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <ChefHat className="h-8 w-8 text-orange-600" />
-              <h1 className="text-2xl font-bold text-gray-900">ChefGPT</h1>
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-4">
+              <div className="p-2 bg-black/10 rounded-xl">
+                <ChefHat className="h-8 w-8 text-black" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-black tracking-tight">
+                  ChefGPT
+                </h1>
+                <p className="text-sm text-black/70 font-medium">
+                  AI-Powered Recipe Analysis
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-orange-500" />
-              <span className="text-sm text-gray-600">
-                AI-Powered Recipe Analysis
+            <div className="flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+              <Sparkles className="h-5 w-5 text-black" />
+              <span className="text-sm text-black font-semibold">
+                Powered by AI
               </span>
             </div>
           </div>
@@ -99,18 +108,25 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Upload Section */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <Camera className="h-5 w-5 text-orange-600" />
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Upload Food Photo
-                </h2>
+          <div className="space-y-8">
+            <div className="bg-white/80 backdrop-blur-sm border border-black/10 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-yellow-100 rounded-xl">
+                  <Camera className="h-6 w-6 text-black" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-black">
+                    Upload Food Photo
+                  </h2>
+                  <p className="text-black/60 text-sm">
+                    Get instant AI analysis
+                  </p>
+                </div>
               </div>
-              <p className="text-gray-600 mb-6">
+              <p className="text-black/80 mb-8 leading-relaxed">
                 Take a photo or upload an image of your food to get AI-powered
                 recipe analysis, nutritional information, and cooking
                 suggestions.
@@ -119,26 +135,48 @@ export default function Home() {
             </div>
 
             {/* Quick Tips */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="font-medium text-blue-900 mb-2">
-                💡 Tips for Best Results
-              </h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Ensure good lighting for clear photos</li>
-                <li>• Include the entire dish in the frame</li>
-                <li>• Avoid blurry or dark images</li>
-                <li>• Supported formats: JPG, PNG, WebP</li>
+            <div className="bg-gradient-to-br from-yellow-200 to-yellow-300 border border-black/10 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-black/10 rounded-lg">
+                  <span className="text-xl">💡</span>
+                </div>
+                <h3 className="font-bold text-black text-lg">
+                  Tips for Best Results
+                </h3>
+              </div>
+              <ul className="text-black/80 space-y-2 text-sm">
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <span>Ensure good lighting for clear photos</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <span>Include the entire dish in the frame</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <span>Avoid blurry or dark images</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <span>Supported formats: JPG, PNG, WebP</span>
+                </li>
               </ul>
             </div>
           </div>
 
           {/* Display Section */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Your Food Photos
-                </h2>
+          <div className="space-y-8">
+            <div className="bg-white/80 backdrop-blur-sm border border-black/10 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-black">
+                    Your Food Photos
+                  </h2>
+                  <p className="text-black/60 text-sm">
+                    Analysis results and insights
+                  </p>
+                </div>
                 {uploadedImages.length > 0 && (
                   <Button
                     onClick={() =>
@@ -147,11 +185,11 @@ export default function Home() {
                       )
                     }
                     disabled={isAnalyzing}
-                    className="bg-orange-600 hover:bg-orange-700"
+                    className="bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black border-2 border-black shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3 rounded-xl font-semibold"
                   >
                     {isAnalyzing ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 mr-2" />
                         Analyzing...
                       </>
                     ) : (
@@ -165,15 +203,19 @@ export default function Home() {
               </div>
 
               {uploadedImages.length === 0 ? (
-                <div className="text-center py-12">
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No photos uploaded yet</p>
-                  <p className="text-sm text-gray-400">
-                    Upload a food photo to get started
+                <div className="text-center py-16">
+                  <div className="p-4 bg-yellow-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                    <Upload className="h-10 w-10 text-black/60" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    No photos uploaded yet
+                  </h3>
+                  <p className="text-black/60">
+                    Upload a food photo to get started with AI analysis
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {uploadedImages.map((image) => (
                     <ImageDisplay
                       key={image.id}

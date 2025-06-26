@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, Camera, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Upload, Camera } from "lucide-react";
 
 interface ImageUploadProps {
   onImageUpload: (base64: string, filename: string) => void;
@@ -12,6 +11,8 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -83,90 +84,105 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
     }
   };
 
-  const handleCameraClick = () => {
-    fileInputRef.current?.click();
+  const handleCameraCapture = async () => {
+    if (!fileInputRef.current) return;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        video.play();
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const base64 = canvas.toDataURL("image/jpeg");
+          onImageUpload(base64, "captured_photo.jpg");
+        }
+      };
+      video.onerror = () => {
+        setCameraError("Error accessing camera. Please try again.");
+      };
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      setCameraError("Error accessing camera. Please try again.");
+    }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Drag & Drop Area */}
       <div
-        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        ref={dropRef}
+        className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 ${
           isDragOver
-            ? "border-orange-400 bg-orange-50"
-            : "border-gray-300 hover:border-gray-400"
+            ? "border-black bg-yellow-100 shadow-lg"
+            : "border-black/20 hover:border-black hover:bg-yellow-50 hover:shadow-md"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="space-y-4">
-          <div className="flex justify-center">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <Upload className="h-8 w-8 text-orange-600" />
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Upload Food Photo
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Drag and drop your image here, or click the button below
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={handleCameraClick}
-              disabled={isUploading}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {isUploading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Camera className="h-4 w-4 mr-2" />
-                  Choose File
-                </>
-              )}
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={handleCameraClick}
-              disabled={isUploading}
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Take Photo
-            </Button>
-          </div>
-
-          <p className="text-sm text-gray-500">
-            Supports JPG, PNG, WebP up to 10MB
-          </p>
+        <div className="p-4 bg-yellow-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+          <Upload className="h-10 w-10 text-black" />
         </div>
-
-        {/* Hidden file input */}
+        <h3 className="text-lg font-bold text-black mb-3">
+          Upload Your Food Photo
+        </h3>
+        <p className="text-black/70 mb-4 leading-relaxed">
+          Drop your food photo here, or{" "}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-black underline hover:text-gray-700 font-semibold"
+          >
+            browse files
+          </button>
+        </p>
+        <p className="text-sm text-black/60">
+          Supports JPG, PNG, WebP up to 10MB
+        </p>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handleFileInputChange}
           className="hidden"
         />
       </div>
 
+      {/* Camera Capture */}
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={handleCameraCapture}
+          className="w-full bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black border-2 border-black py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
+        >
+          <Camera className="h-5 w-5" />
+          <span>Take Photo with Camera</span>
+        </button>
+        {cameraError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-600 text-sm text-center">{cameraError}</p>
+          </div>
+        )}
+      </div>
+
       {/* Upload Progress */}
       {isUploading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
-            <span className="text-blue-800">Processing image...</span>
+        <div className="space-y-3 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="flex items-center justify-between text-sm text-black font-medium">
+            <span>Processing your image...</span>
+            <span>Please wait</span>
+          </div>
+          <div className="w-full bg-white rounded-full h-3 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-black to-gray-800 h-3 rounded-full transition-all duration-300 animate-pulse"
+              style={{ width: "100%" }}
+            ></div>
           </div>
         </div>
       )}
