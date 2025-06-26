@@ -206,20 +206,7 @@ export default function Home() {
 
             {/* Pinterest-style Grid */}
             <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-              {uploadedImages.length === 0 ? (
-                <div className="col-span-full text-center py-16">
-                  <div className="p-6 bg-yellow-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                    <Upload className="h-12 w-12 text-black/60" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-black mb-2">
-                    Start Your Food Journey
-                  </h3>
-                  <p className="text-black/60 max-w-md mx-auto">
-                    Upload your first food photo to discover recipes, nutrition
-                    facts, and cooking inspiration
-                  </p>
-                </div>
-              ) : (
+              {uploadedImages.length > 0 &&
                 uploadedImages.map((image) => (
                   <div key={image.id} className="break-inside-avoid mb-6">
                     <ImageDisplay
@@ -228,8 +215,7 @@ export default function Home() {
                       isAnalyzing={isAnalyzing}
                     />
                   </div>
-                ))
-              )}
+                ))}
             </div>
           </>
         ) : (
