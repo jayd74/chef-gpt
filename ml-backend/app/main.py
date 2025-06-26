@@ -4,17 +4,28 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import os
 import sys
+from dotenv import load_dotenv
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import asyncio
 import logging
-from app.services.chat_service import chat_stream
+from pydantic import BaseModel
 
+
+# Add the parent directory to Python path to allow importing app modules
 sys.path.append(str(Path(__file__).parent.parent))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+load_dotenv()
+
+# Pydantic model for chat request
+class ChatRequest(BaseModel):
+    message: str
+    session_id: str = "default"
+    context: Dict[str, Any] = {}
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -38,9 +49,44 @@ async def health_check():
     return {"status": "healthy", "message": "ML backend is running"}
 
 @app.post("/chat")
-async def chat_endpoint(request):
-    """Chat endpoint"""
-    return await chat_stream(request)
+async def chat_endpoint(request: ChatRequest):
+    """Chat endpoint using LangGraph"""
+    try:
+        # Import here to avoid circular imports
+        from app.services.chat_service import chat_stream
+        return await chat_stream(request)
+    except ImportError as e:
+        logger.error(f"Import error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Chat service not available. Please install required dependencies."}
+        )
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
+
+@app.post("/chat/simple")
+async def chat_simple_endpoint(request: ChatRequest):
+    """Simple non-streaming chat endpoint"""
+    try:
+        # Import here to avoid circular imports
+        from app.services.chat_service import chat_simple
+        return await chat_simple(request)
+    except ImportError as e:
+        logger.error(f"Import error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Chat service not available. Please install required dependencies."}
+        )
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
 
 if __name__ == "__main__":
     uvicorn.run(
