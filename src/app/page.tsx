@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChefHat, Sparkles, Hamburger, Receipt } from "lucide-react";
+import { Sparkles, Hamburger, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "../components/ImageUpload";
 import ImageDisplay from "../components/ImageDisplay";
 import FlyerDinnerUpload from "../components/FlyerDinnerUpload";
+import Image from "next/image";
 
 interface NutritionFacts {
   serving_size: string;
@@ -89,9 +90,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-yellow-100 rounded-full">
-                <ChefHat className="h-6 w-6 text-black" />
-              </div>
+              <Image
+                src="/chefgpt.png"
+                alt="ChefGPT Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+              />
               <h1 className="text-2xl font-bold text-black">ChefGPT</h1>
             </div>
             <div className="flex items-center space-x-4">
