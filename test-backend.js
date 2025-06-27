@@ -1,5 +1,5 @@
 // Test script to verify ML backend connection
-const BACKEND_URL = process.env.ML_BACKEND_URL || 'https://chef-gpt-c4sc.onrender.com';
+const BACKEND_URL = 'https://chef-gpt-c4sc.onrender.com';
 
 async function testBackend() {
   console.log('🧪 Testing ML Backend Connection...');

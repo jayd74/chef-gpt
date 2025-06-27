@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { API_ENDPOINTS } from "@/app/api/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,9 +13,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call the deployed ML backend using environment variable
-    const mlBackendUrl = process.env.ML_BACKEND_URL || "http://localhost:8000";
-    const response = await fetch(`${mlBackendUrl}/chat`, {
+    // Call the deployed ML backend on Render
+    const response = await fetch(API_ENDPOINTS.CHAT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
