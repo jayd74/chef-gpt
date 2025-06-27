@@ -12,9 +12,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call the ML backend
-    const mlBackendUrl = process.env.ML_BACKEND_URL || "http://localhost:8000";
-    const response = await fetch(`${mlBackendUrl}/flyer_dinner`, {
+    // Call the ML backend through the proxy
+    const response = await fetch("/api/ml/flyer_dinner", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
