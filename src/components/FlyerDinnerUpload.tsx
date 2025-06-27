@@ -147,10 +147,17 @@ export default function FlyerDinnerUpload({
           <button
             onClick={() => handleBannerClick("no_frills")}
             disabled={isAnalyzing}
-            className="group relative bg-white border-2 border-yellow-400 rounded-2xl p-6 hover:bg-yellow-50 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative border-2 border-[#FEE600] rounded-2xl p-6 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            style={{ backgroundColor: "#FEE600" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#e6cf00";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#FEE600";
+            }}
           >
             <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
                 <Image
                   src="/nofrills-logo.jpg"
                   alt="No Frills Logo"
@@ -169,10 +176,17 @@ export default function FlyerDinnerUpload({
           <button
             onClick={() => handleBannerClick("loblaws")}
             disabled={isAnalyzing}
-            className="group relative bg-white border-2 border-red-600 rounded-2xl p-6 hover:bg-red-50 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative border-2 border-[#ed1b23] rounded-2xl p-6 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            style={{ backgroundColor: "#ed1b23" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#b3141a";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#ed1b23";
+            }}
           >
             <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
                 <Image
                   src="/Loblaws-scaled.webp"
                   alt="Loblaws Logo"
@@ -182,7 +196,7 @@ export default function FlyerDinnerUpload({
                 />
               </div>
               <div className="text-center">
-                <h4 className="font-bold text-black text-lg">Loblaws</h4>
+                <h4 className="font-bold text-white text-lg">Loblaws</h4>
               </div>
             </div>
           </button>
@@ -191,10 +205,17 @@ export default function FlyerDinnerUpload({
           <button
             onClick={() => handleBannerClick("t_t")}
             disabled={isAnalyzing}
-            className="group relative bg-white border-2 border-green-600 rounded-2xl p-6 hover:bg-green-50 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative border-2 border-[#007852] rounded-2xl p-6 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            style={{ backgroundColor: "#007852" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#005a3a";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#007852";
+            }}
           >
             <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
                 <Image
                   src="/tnt-logo.png"
                   alt="tnt Logo"
@@ -204,7 +225,7 @@ export default function FlyerDinnerUpload({
                 />
               </div>
               <div className="text-center">
-                <h4 className="font-bold text-black text-lg">
+                <h4 className="font-bold text-white text-lg">
                   T&T Supermarket
                 </h4>
               </div>
