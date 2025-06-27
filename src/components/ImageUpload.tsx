@@ -12,7 +12,6 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -87,29 +86,25 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
   const handleCameraCapture = async () => {
     if (!fileInputRef.current) return;
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const video = document.createElement("video");
-      video.srcObject = stream;
-      video.onloadedmetadata = () => {
-        video.play();
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext("2d");
-        if (context) {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const base64 = canvas.toDataURL("image/jpeg");
-          onImageUpload(base64, "captured_photo.jpg");
-        }
-      };
-      video.onerror = () => {
-        setCameraError("Error accessing camera. Please try again.");
-      };
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      setCameraError("Error accessing camera. Please try again.");
-    }
+    // Create a temporary file input for camera capture
+    const cameraInput = document.createElement("input");
+    cameraInput.type = "file";
+    cameraInput.accept = "image/*";
+    cameraInput.capture = "environment"; // This opens the rear camera app
+
+    cameraInput.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        await handleFileSelect(file);
+      }
+      // Clean up the temporary input
+      document.body.removeChild(cameraInput);
+    };
+
+    // Add to DOM temporarily and trigger click
+    cameraInput.style.display = "none";
+    document.body.appendChild(cameraInput);
+    cameraInput.click();
   };
 
   return (
@@ -167,11 +162,6 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
           <Camera className="h-6 w-6" />
           <span>Take Photo with Camera</span>
         </button>
-        {cameraError && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-            <p className="text-red-600 text-sm text-center">{cameraError}</p>
-          </div>
-        )}
       </div>
 
       {/* Upload Progress */}
