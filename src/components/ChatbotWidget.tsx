@@ -4,9 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, ChefHat } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
-const ML_BACKEND_URL =
-  process.env.NEXT_PUBLIC_ML_BACKEND_URL || "http://localhost:8000";
-
 interface ChatMessage {
   role: "user" | "bot";
   content: string;
@@ -34,8 +31,26 @@ export default function ChatbotWidget() {
     setInput("");
     setLoading(true);
 
+    // Helper function to safely parse JSON
+    const safeJsonParse = (jsonStr: string) => {
+      try {
+        return JSON.parse(jsonStr);
+      } catch {
+        // Try to find valid JSON within the string
+        const jsonMatch = jsonStr.match(/\{[^}]*\}/);
+        if (jsonMatch) {
+          try {
+            return JSON.parse(jsonMatch[0]);
+          } catch {
+            return null;
+          }
+        }
+        return null;
+      }
+    };
+
     try {
-      const res = await fetch(`${ML_BACKEND_URL}/chat`, {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -54,6 +69,7 @@ export default function ChatbotWidget() {
       const decoder = new TextDecoder();
       let botMessage = "";
       let isFirstMessage = true;
+      let buffer = ""; // Buffer for incomplete JSON chunks
 
       if (reader) {
         while (true) {
@@ -61,59 +77,69 @@ export default function ChatbotWidget() {
           if (done) break;
 
           const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
+          buffer += chunk;
+
+          // Split by lines and process each complete line
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
           for (const line of lines) {
             if (line.startsWith("data: ")) {
-              try {
-                const data = JSON.parse(line.slice(6)); // Remove 'data: ' prefix
+              const jsonStr = line.slice(6); // Remove 'data: ' prefix
 
-                if (data.type === "human" && isFirstMessage) {
-                  // Skip the initial human message echo
-                  isFirstMessage = false;
-                  continue;
-                }
+              // Skip empty lines
+              if (!jsonStr.trim()) continue;
 
-                if (data.type === "ai") {
-                  // Add or update bot message
-                  botMessage = data.content;
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    const lastMessage = newMessages[newMessages.length - 1];
-                    if (lastMessage && lastMessage.role === "bot") {
-                      lastMessage.content = botMessage;
-                    } else {
-                      newMessages.push({ role: "bot", content: botMessage });
-                    }
-                    return newMessages;
-                  });
-                }
+              const data = safeJsonParse(jsonStr);
 
-                if (data.type === "token") {
-                  // Stream individual tokens
-                  botMessage += data.content;
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    const lastMessage = newMessages[newMessages.length - 1];
-                    if (lastMessage && lastMessage.role === "bot") {
-                      lastMessage.content = botMessage;
-                    } else {
-                      newMessages.push({ role: "bot", content: botMessage });
-                    }
-                    return newMessages;
-                  });
-                }
+              if (!data) {
+                console.error("Failed to parse JSON:", jsonStr);
+                continue;
+              }
 
-                if (data.type === "end") {
-                  // Stream ended
-                  break;
-                }
+              if (data.type === "human" && isFirstMessage) {
+                // Skip the initial human message echo
+                isFirstMessage = false;
+                continue;
+              }
 
-                if (data.type === "error") {
-                  throw new Error(data.content);
-                }
-              } catch (parseError) {
-                console.error("Error parsing SSE data:", parseError);
+              if (data.type === "ai") {
+                // Add or update bot message
+                botMessage = data.content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === "bot") {
+                    lastMessage.content = botMessage;
+                  } else {
+                    newMessages.push({ role: "bot", content: botMessage });
+                  }
+                  return newMessages;
+                });
+              }
+
+              if (data.type === "token") {
+                // Stream individual tokens
+                botMessage += data.content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === "bot") {
+                    lastMessage.content = botMessage;
+                  } else {
+                    newMessages.push({ role: "bot", content: botMessage });
+                  }
+                  return newMessages;
+                });
+              }
+
+              if (data.type === "end") {
+                // Stream ended
+                break;
+              }
+
+              if (data.type === "error") {
+                throw new Error(data.content);
               }
             }
           }

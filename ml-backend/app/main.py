@@ -44,7 +44,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001",
-    ],  # Next.js dev server
+        "https://*.vercel.app",  # Allow Vercel deployments
+        "https://chef-gpt.vercel.app",  # Your specific Vercel domain
+        "https://chef-gpt-git-main-jasodu.vercel.app",  # Alternative Vercel domain format
+    ],  # Next.js dev server and deployed frontends
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
