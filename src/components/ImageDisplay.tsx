@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChefHat, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 
 interface NutritionFacts {
   serving_size: string;
@@ -47,7 +48,7 @@ export default function ImageDisplay({
     window.open(url, "_blank");
   };
 
-  const handleBuyAllIngredients = () => {
+  const _handleBuyAllIngredients = () => {
     if (image.analysis?.ingredients) {
       const allIngredients = image.analysis.ingredients.join(" ");
       const encodedSearch = encodeURIComponent(allIngredients);
@@ -68,10 +69,13 @@ export default function ImageDisplay({
     <div className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
       {/* Image */}
       <div className="relative">
-        <img
+        <Image
           src={image.data}
           alt="Uploaded food"
+          width={400}
+          height={256}
           className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+          unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="absolute top-4 right-4">
@@ -291,10 +295,13 @@ export default function ImageDisplay({
             <div className="p-6 space-y-6">
               {/* Dish Image */}
               <div className="relative">
-                <img
+                <Image
                   src={image.data}
                   alt="Food dish"
+                  width={400}
+                  height={192}
                   className="w-full h-48 object-cover rounded-2xl shadow-lg"
+                  unoptimized
                 />
               </div>
 

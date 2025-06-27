@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChefHat, Sparkles, Upload, Hamburger, Receipt } from "lucide-react";
+import { ChefHat, Sparkles, Hamburger, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "../components/ImageUpload";
 import ImageDisplay from "../components/ImageDisplay";
@@ -134,7 +134,7 @@ export default function Home() {
                 }`}
               >
                 <Hamburger className="w-5 h-5" />
-                Food Analysis
+                Meal Lens
               </button>
               <button
                 onClick={() => setActiveTab("flyer")}
@@ -145,7 +145,7 @@ export default function Home() {
                 }`}
               >
                 <Receipt className="w-5 h-5" />
-                Flyer Planning
+                Deal to Meal
               </button>
             </div>
           </div>

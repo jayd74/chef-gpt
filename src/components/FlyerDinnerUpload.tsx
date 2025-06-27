@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChefHat, Loader2, Link, X, Maximize2 } from "lucide-react";
+import { Loader2, Link, X, Maximize2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 
 interface FlyerAnalysis {
   dish_name?: string;
@@ -38,13 +39,14 @@ interface FlyerDinnerUploadProps {
 export default function FlyerDinnerUpload({
   onAnalysisComplete,
 }: FlyerDinnerUploadProps) {
-  const [flyerUrl, setFlyerUrl] = useState<string>("");
+  const [flyerUrl, _setFlyerUrl] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<FlyerAnalysis | null>(null);
   const [flyerUrls, setFlyerUrls] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [selectedBanner, setSelectedBanner] = useState<string>("");
 
   const analyzeFlyer = async (banner?: string) => {
     if (!flyerUrl.trim() && !banner) {
@@ -89,13 +91,31 @@ export default function FlyerDinnerUpload({
   };
 
   const handleBannerClick = (banner: string) => {
+    setSelectedBanner(banner);
     analyzeFlyer(banner);
   };
 
   const handleIngredientClick = (ingredient: string) => {
     const encodedSearch = encodeURIComponent(ingredient);
-    const url = `https://www.nofrills.ca/search?search-bar=${encodedSearch}`;
-    window.open(url, "_blank");
+
+    // Determine the store URL based on the selected banner
+    let storeUrl: string;
+    switch (selectedBanner) {
+      case "no_frills":
+        storeUrl = `https://www.nofrills.ca/search?search-bar=${encodedSearch}`;
+        break;
+      case "loblaws":
+        storeUrl = `https://www.loblaws.ca/search?search-bar=${encodedSearch}`;
+        break;
+      case "t_t":
+        storeUrl = `https://www.tntsupermarket.com/eng/search.html?query=${encodedSearch}`;
+        break;
+      default:
+        // Default to No Frills if no banner is selected
+        storeUrl = `https://www.nofrills.ca/search?search-bar=${encodedSearch}`;
+    }
+
+    window.open(storeUrl, "_blank");
   };
 
   const openModal = (imageUrl?: string) => {
@@ -131,9 +151,11 @@ export default function FlyerDinnerUpload({
           >
             <div className="flex flex-col items-center space-y-3">
               <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
-                <img
+                <Image
                   src="/nofrills-logo.jpg"
                   alt="No Frills Logo"
+                  width={64}
+                  height={64}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -151,9 +173,11 @@ export default function FlyerDinnerUpload({
           >
             <div className="flex flex-col items-center space-y-3">
               <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
-                <img
+                <Image
                   src="/Loblaws-scaled.webp"
                   alt="Loblaws Logo"
+                  width={64}
+                  height={64}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -171,13 +195,13 @@ export default function FlyerDinnerUpload({
           >
             <div className="flex flex-col items-center space-y-3">
               <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
-                  <img
-                    src="/tnt-logo.png"
-                    alt="tnt Logo"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+                <Image
+                  src="/tnt-logo.png"
+                  alt="tnt Logo"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="text-center">
                 <h4 className="font-bold text-black text-lg">
@@ -214,10 +238,13 @@ export default function FlyerDinnerUpload({
                   className="w-full h-32 rounded-2xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => openModal(url)}
                 >
-                  <img
+                  <Image
                     src={url}
                     alt={`Flyer page ${index + 1}`}
+                    width={400}
+                    height={128}
                     className="w-full h-full object-cover"
+                    unoptimized
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                       e.currentTarget.nextElementSibling?.classList.remove(
@@ -256,10 +283,13 @@ export default function FlyerDinnerUpload({
               className="w-48 h-32 rounded-2xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => openModal(flyerUrl)}
             >
-              <img
+              <Image
                 src={flyerUrl}
                 alt="Flyer preview"
+                width={192}
+                height={128}
                 className="w-full h-full object-cover"
+                unoptimized
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                   e.currentTarget.nextElementSibling?.classList.remove(
@@ -289,10 +319,13 @@ export default function FlyerDinnerUpload({
               </button>
             </div>
             <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
-              <img
+              <Image
                 src={selectedImage}
                 alt="Flyer full view"
+                width={800}
+                height={600}
                 className="w-full h-auto rounded-2xl shadow-lg"
+                unoptimized
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                   e.currentTarget.nextElementSibling?.classList.remove(

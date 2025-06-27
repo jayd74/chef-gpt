@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, ChefHat } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 const ML_BACKEND_URL =
   process.env.NEXT_PUBLIC_ML_BACKEND_URL || "http://localhost:8000";
@@ -210,7 +211,7 @@ export default function ChatbotWidget() {
                     }`}
                   >
                     <div className="markdown-content text-sm leading-relaxed">
-                      {message.content}
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
                     </div>
                   </div>
                 </div>
