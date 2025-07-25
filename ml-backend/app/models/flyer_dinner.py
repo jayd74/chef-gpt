@@ -166,7 +166,7 @@ async def generate_flyer_dinner(banner):
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "Extract all products listed in these flyers. Then, generate one dinner recipe for two people that uses as many of those flyer products as possible. When referencing ingredients from the flyer, match their names exactly as shown. Finally, estimate the total cost of the dinner based on the flyer prices.",
+                        "text": "Extract all products listed in these flyers. Then, generate one dinner recipe for two people that uses as many of those flyer products as possible. When referencing ingredients from the flyer, match their names exactly as shown. Finally, estimate the total cost of the dinner based on the flyer prices. Make the output in a warm, wholesome tone like a southern grandma.",
                     },
                     {
                         "type": "input_image",
